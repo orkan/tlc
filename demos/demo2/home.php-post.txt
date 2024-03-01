@@ -1,0 +1,12 @@
+REQUEST_METHOD: [POST]
+FORM action: [login]
+$_COOKIE: Array
+(
+)
+$_REQUEST: Array
+(
+    [action] => login
+    [user] => Demo
+    [pass] => Password
+    [nonce] => demo2-nonce
+)

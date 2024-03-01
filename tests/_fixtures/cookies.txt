@@ -1,0 +1,9 @@
+.example.1.com	TRUE	/	FALSE	1661698785	cookie1	15mins
+#HttpOnly_.www.example-2.com	TRUE	/	FALSE	1661731200	cookie2	24h_httponly_lax
+.example-3.com	TRUE	/abc	FALSE	0	cookie3	session
+.example4.com	TRUE	/~rasmus/	TRUE	0	cookie4	https
+.example5.com	TRUE	/	FALSE	0	cookie_5	nopath
+	FALSE	/	FALSE	0	cookie-6	nopath_nodomain
+.example7.com	TRUE	/	FALSE	0	cookie7	cookie+%5B7%5D+%2B+value
+.example8.com	TRUE	/abc/def	TRUE	0	cookie8	https
+#HttpOnly_.example9.com	TRUE	/	FALSE	0	cookie9	https

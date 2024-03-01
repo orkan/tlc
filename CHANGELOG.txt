@@ -1,0 +1,11 @@
+===================================================================================================
+v1.0.0
+
+Renamed cfg:
+---------------
+TransportAbstract::cfg[request_retry] => Curl[net_retry]
+TransportAbstract::cfg[net_connecttimeout] => Curl[net_timeout]
+
+Updated methods:
+---------------
+Cookies => removed all static methods (unable to mock in tests)

@@ -1,0 +1,6 @@
+Source:
+https://curl.se/docs/caextract.html
+
+Info:
+https://www.php.net/manual/en/function.curl-setopt.php#110457
+
