@@ -145,10 +145,10 @@ class Cache
 			return false;
 		}
 
-		$this->Logger->debug( $this->render( $cfile ) );
-
 		$data = file_get_contents( $cfile );
 		$data = gzdecode( $data );
+
+		DEBUG && $this->Logger->debug( $this->render( $cfile ) );
 
 		return $data;
 	}
@@ -169,7 +169,7 @@ class Cache
 		$bytes = file_put_contents( $cfile, gzencode( $data ) );
 
 		$msg = sprintf( '%s (%s)', $cfile, $this->Utils->byteString( $bytes ) );
-		$bytes ? $this->Logger->debug( $msg ) : $this->error( $msg );
+		$bytes ? $this->Logger->debug( $msg ) : $this->Logger->error( $msg );
 
 		return $bytes;
 	}
@@ -190,10 +190,11 @@ class Cache
 			return false;
 		}
 
-		$this->Logger->debug( $this->render( $new ) );
-
 		rename( $old, $new );
 		touch( $new, time() );
+
+		DEBUG && $this->Logger->debug( $this->render( $old ) );
+		DEBUG && $this->Logger->debug( $this->render( $new ) );
 
 		return $new;
 	}
@@ -225,7 +226,7 @@ class Cache
 	 */
 	private function unlink( string $cfile, int $backtrace = 0 ): bool
 	{
-		$this->Logger->debug( $this->render( $cfile ), $backtrace );
+		DEBUG && $this->Logger->debug( $this->render( $cfile ), $backtrace );
 		return @unlink( $cfile );
 	}
 }

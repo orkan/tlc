@@ -1,4 +1,4 @@
-# TLC - Transport, Log, Cache `v1.0.0`
+# TLC - Transport, Log, Cache `v1.1.0-RC1`
 Simple PHP/cURL framework with Logger, Cache and more!
 
 ## Usage
@@ -47,4 +47,4 @@ PHP  ^7.4
 MIT
 
 ### Updated
-Fri, 01 Mar 2024 16:18:19 +01:00
+Sun, 03 Mar 2024 13:46:34 +01:00

@@ -90,6 +90,7 @@ class Factory extends \Orkan\Factory
 				'wait_max' => $this->get( 'json_throttle_max' ),
 			],
 			'curl' => [],
+			'tlc'  => [ 'log_errors' => true ],
 		], $options );
 
 		// Merge default json http headers with user options or cfg value
@@ -116,7 +117,7 @@ class Factory extends \Orkan\Factory
 			// Archive faulty response for later inspection
 			$Cache->archive( $url, 'err' );
 
-			$this->error( $json['errors'] );
+			$options['tlc']['log_errors'] && $this->error( $json['errors'] );
 		}
 
 		DEBUG && $Logger->debug( $Utils->print_r( $json ) );
@@ -134,40 +135,21 @@ class Factory extends \Orkan\Factory
 		$Cache = $this->Cache();
 		$Transport = $this->Transport();
 
-		/* @formatter:off */
-		$options = array_replace_recursive([
-			'cache'     => [ 'reload' => false ],
-			'transport' => [ 'method' => 'get' ],
-		], $options );
-		/* @formatter:on */
+		DEBUG && $Logger->debug( $url );
+		DEBUG && $options && $Logger->debug( 'Options ' . $Utils->print_r( $options ) );
 
-		$Logger->debug( $url );
-		$Logger->debug( 'Options ' . $Utils->print_r( $options ) );
-
-		if ( $options['cache']['reload'] ) {
+		if ( $options['cache']['reload'] ?? false) {
 			$Cache->del( $url );
 		}
 
 		$data = $Cache->get( $url );
 
 		if ( false === $data ) {
-			$data = $Transport->with( $options['transport']['method'], $url, $options );
+			$data = $Transport->with( $options['transport']['method'] ?? 'get', $url, $options );
 			$Cache->put( $url, $data );
 		}
 
-		return (string) $data;
-	}
-
-	/**
-	 * Append file contents to log file.
-	 */
-	public function logFile( string $file ): void
-	{
-		if ( DEBUG && is_file( $file ) ) {
-			foreach ( file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) as $line ) {
-				$this->Logger()->debug( $line, 1 );
-			}
-		}
+		return $data;
 	}
 
 	/**
