@@ -41,6 +41,7 @@ class Curl extends TransportAbstract
 	 */
 	public function __construct( Factory $Factory )
 	{
+		$Factory->merge( self::defaults() );
 		parent::__construct( $Factory );
 
 		/**
@@ -113,11 +114,10 @@ class Curl extends TransportAbstract
 		 *
 		 *
 		 * @formatter:off */
-		return array_merge(
-			parent::defaults(), [
+		return [
 			'net_retry'   => 5,
 			'net_timeout' => 5,
-		]);
+		];
 		/* @formatter:on */
 	}
 
@@ -198,7 +198,8 @@ class Curl extends TransportAbstract
 			unset( $curlopts[CURLOPT_HTTPHEADER] );
 		}
 
-		DEBUG && $this->Logger->debug( 'Options ' . $this->printOptions( $curlopts ) );
+		DEBUG && $this->Logger->debug( 'Options ' . $this->Utils->print_r( $options ) );
+		DEBUG && $this->Logger->debug( $this->printOptions( $curlopts ) );
 
 		$Request = $this->Factory->Request();
 		$Request->init();
@@ -208,7 +209,6 @@ class Curl extends TransportAbstract
 		$retry = $this->Factory->get( 'net_retry' );
 
 		while ( $retry-- ) {
-			$this->stats['total_calls']++;
 			$this->throttle( $options['throttle'] );
 
 			$response = $Request->exec();

@@ -22,7 +22,7 @@ abstract class TransportAbstract
 	protected $lastCall = [];
 
 	/**
-	 * Last CURL results.
+	 * Last cURL results.
 	 *
 	 * @see \curl_getinfo()
 	 * @see \Orkan\TLC\Transport\Curl::exec()
@@ -57,17 +57,14 @@ abstract class TransportAbstract
 	protected $Utils;
 	protected $Logger;
 
+	/**
+	 * Setup.
+	 */
 	public function __construct( Factory $Factory )
 	{
-		$this->Factory = $Factory->merge( $this->defaults() );
+		$this->Factory = $Factory->merge( self::defaults() );
 		$this->Utils = $this->Factory->Utils();
 		$this->Logger = $this->Factory->Logger();
-
-		$Factory->cfg( 'net_throttle_max', max( $Factory->get( 'net_throttle' ), $Factory->get( 'net_throttle_max' ) ) );
-
-		if ( 'shuffle' === $this->Factory->get( 'net_useragent' ) ) {
-			$this->Factory->cfg( 'net_useragent', require __DIR__ . '/useragents.php' );
-		}
 	}
 
 	/**
@@ -77,58 +74,23 @@ abstract class TransportAbstract
 	{
 		/**
 		 * [net_throttle]
-		 * 1 request per X microseconds. Use 0 to disable
+		 * 1 request per X microseconds
+		 * Use 0 to disable
 		 *
 		 * [net_throttle_max]
 		 * Randomize pause between net requests: cfg[net_throttle]...cfg[net_throttle_max]
+		 * Use value from cfg[net_throttle] to disable
 		 *
 		 * [net_useragent]
-		 * Rotate UA from src/Transport/useragents.php
+		 * Useragent string
 		 *
 		 * @formatter:off */
 		return [
 			'net_throttle'     => 2e+6,
 			'net_throttle_max' => 6e+6,
-			'net_useragent'    => 'shuffle',
+			'net_useragent'    => Useragents::getUA(),
 		];
 		/* @formatter:on */
-	}
-
-	/**
-	 * Do [get] http request.
-	 *
-	 * @param  string $url     Full target url (could be with query)
-	 * @param  array  $options Extra options passed to child class
-	 * @return string          Response from the server
-	 */
-	abstract public function get( string $url, array $options = [] ): string;
-
-	/**
-	 * Do [post] http request.
-	 *
-	 * @param string  $url     Full target url (could be with query)
-	 * @param array   $options Extra options passed to child class
-	 *                         To pass FORM fields use: $options[fields] = Array( [field_name] => value, ... )
-	 * @return string          Response from the server
-	 */
-	abstract public function post( string $url, array $options = [] ): string;
-
-	/**
-	 * Convert options array to string with numeric keys replaced by string constants.
-	 */
-	abstract public function printOptions( array $options ): string;
-
-	/**
-	 * Choose the right method to send http request.
-	 *
-	 * @param  string $method Request method: get, post
-	 * @param  string $extra  Extra options passed to child class
-	 * @return string         Response from the server
-	 */
-	public function with( string $method, string $url, array $options = [] ): string
-	{
-		$method = strtolower( $method );
-		return $this->$method( $url, $options );
 	}
 
 	/**
@@ -143,6 +105,8 @@ abstract class TransportAbstract
 	 */
 	protected function throttle( array $options = [] ): float
 	{
+		$this->stats['total_calls']++;
+
 		/* @formatter:off */
 		$options = array_merge([
 			'wait_min' => $this->Factory->get( 'net_throttle' ),
@@ -154,44 +118,38 @@ abstract class TransportAbstract
 		$options['wait_min'] = min( $options['wait_min'], $options['wait_max'] );
 		$options['wait_max'] = max( $options['wait_min'], $options['wait_max'] );
 
-		// Don't wait on first call!
-		$wait = 0;
-		if ( $lastCall = $this->lastCall[$options['host']] ?? 0) {
-			// Time passed since last call
-			$exec = ( $this->Utils->exectime() - $lastCall ) / 1e+3; // nano to usec
-			$min = $options['wait_min'] - $exec;
-			$max = $options['wait_max'] - $exec;
+		DEBUG && $this->Logger->debug( 'Options ' . $this->Utils->print_r( $options ) );
 
-			// Time passed below [wait_min] ?
-			if ( 0 < $min ) {
-				$wait = rand( $min, $max ); // add some randomness
-			}
-		}
-
-		if ( $wait ) {
-
-			if ( DEBUG ) {
-				$this->Logger->debug( 'Options ' . $this->Utils->print_r( $options ) );
-				/* @formatter:off */
-				$this->Factory->debug(
-					'Request #%total% to "%host%"... ' .
-					'Sleep (min:%min% <-> max:%max%) pas:%pas% + rnd:%rnd% = tot:%tot%', [
-					'%total%' => $this->stats['total_calls'],
-					'%host%'  => $options['host'],
-					'%min%'   => sprintf( '%.1f', $options['wait_min'] / 1e+6 ), // usec to sec
-					'%max%'   => sprintf( '%.1f', $options['wait_max'] / 1e+6 ),
-					'%pas%'   => sprintf( '%.3f', $exec / 1e+6 ),
-					'%rnd%'   => sprintf( '%.3f', $wait / 1e+6 ),
-					'%tot%'   => sprintf( '%.3f', ( $exec + $wait ) / 1e+6 ),
-				]);
-				/* @formatter:on */
-			}
-
-			$this->sleep( $wait );
-			$this->stats['total_usleep'] += $wait;
-		}
-
+		// Time passed from last call
+		$last = $this->lastCall[$options['host']] ?? 0;
 		$this->lastCall[$options['host']] = $this->Utils->exectime();
+		$exec = $min = $max = $wait = 0;
+		if ( $last ) {
+			$exec = ( $this->Utils->exectime() - $last ) / 1e+3; // nano to usec
+			$min = max( 0, $options['wait_min'] - $exec );
+			$max = max( 0, $options['wait_max'] - $exec );
+			$wait = rand( $min, $max );
+		}
+
+		/* @formatter:off */
+		DEBUG && $this->Factory->debug( 'Request #%total% to "%host%"...', [
+			'%total%' => $this->stats['total_calls'],
+			'%host%'  => $options['host'],
+		]);
+		DEBUG && $this->Factory->debug(
+			'Sleep (min:%min% <-> max:%max%) pas:%pas% + rnd(%rnd1%<->%rnd2%):%rnd% = tot:%tot%', [
+			'%min%'   => sprintf( '%.1f', $options['wait_min'] / 1e+6 ), // usec to sec
+			'%max%'   => sprintf( '%.1f', $options['wait_max'] / 1e+6 ),
+			'%pas%'   => sprintf( '%.3f', $exec / 1e+6 ),
+			'%rnd1%'  => $min / 1e+6,
+			'%rnd2%'  => $max / 1e+6,
+			'%rnd%'   => sprintf( '%.3f', $wait / 1e+6 ),
+			'%tot%'   => sprintf( '%.3f', ( $exec + $wait ) / 1e+6 ),
+		]);
+		/* @formatter:on */
+
+		// Sleep from 2nd call...
+		$last && $this->sleep( $wait );
 
 		return $wait;
 	}
@@ -199,25 +157,25 @@ abstract class TransportAbstract
 	/**
 	 * Slow down.
 	 */
-	protected function sleep( int $usec ): void
+	protected function sleep( int $usec ): float
 	{
-		!defined( 'TESTING' ) && usleep( $usec );
-	}
+		$wait = max( 0, $usec );
+		$last = $this->stats['total_usleep'];
+		$this->stats['total_usleep'] += $wait;
 
-	/**
-	 * Get last CURL results.
-	 */
-	public function lastInfo(): array
-	{
-		return $this->lastInfo;
-	}
+		/* @formatter:off */
+		DEBUG && $this->Factory->debug( 'Sleep (%usec% usec) old:%old% + now:%now% = tot:%tot%', [
+			'%usec%' => sprintf( '%.6f', $usec / 1e+6 ), // usec to sec
+			'%old%'  => sprintf( '%.3f', $last / 1e+6 ),
+			'%now%'  => sprintf( '%.3f', $wait / 1e+6 ),
+			'%tot%'  => sprintf( '%.3f', $this->stats['total_usleep'] / 1e+6 ),
+		]);
+		/* @formatter:on */
 
-	/**
-	 * Get last URL used.
-	 */
-	public function lastUrl(): string
-	{
-		return $this->lastUrl;
+		$wait = defined( 'TESTING' ) ? 0 : $wait;
+		usleep( $wait );
+
+		return $wait;
 	}
 
 	/**
@@ -254,4 +212,52 @@ abstract class TransportAbstract
 
 		return $this->stats[$key] ?? $this->stats;
 	}
+
+	/**
+	 * Get last CURL results.
+	 */
+	public function lastInfo(): array
+	{
+		return $this->lastInfo;
+	}
+
+	/**
+	 * Get last URL used.
+	 */
+	public function lastUrl(): string
+	{
+		return $this->lastUrl;
+	}
+
+	/**
+	 * Choose the right method to send http request.
+	 *
+	 * @param  string $method Request method: get, post
+	 * @param  string $extra  Extra options passed to child class
+	 * @return string         Response from the server
+	 */
+	public function with( string $method, string $url, array $options = [] ): string
+	{
+		$method = strtolower( $method );
+		return $this->$method( $url, $options );
+	}
+
+	/**
+	 * Do [get] http request.
+	 *
+	 * @param  string $url     Full target url (could be with query)
+	 * @param  array  $options Extra options passed to child class
+	 * @return string          Response from the server
+	 */
+	abstract public function get( string $url, array $options = [] ): string;
+
+	/**
+	 * Do [post] http request.
+	 *
+	 * @param string  $url     Full target url (could be with query)
+	 * @param array   $options Extra options passed to child class
+	 *                         To pass FORM fields use: $options[fields] = Array( [field_name] => value, ... )
+	 * @return string          Response from the server
+	 */
+	abstract public function post( string $url, array $options = [] ): string;
 }

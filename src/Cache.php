@@ -54,7 +54,7 @@ class Cache
 	 */
 	public function __construct( Factory $Factory )
 	{
-		$this->Factory = $Factory->merge( $this->defaults() );
+		$this->Factory = $Factory->merge( self::defaults() );
 		$this->Utils = $Factory->Utils();
 		$this->Logger = $Factory->Logger();
 
