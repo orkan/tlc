@@ -17,7 +17,7 @@
 		}
 	],
 	"require": {
-		"orkan/utils": "^6.0"
+		"orkan/utils": "^8.0"
 	},
 	"require-dev": {
 		"monolog/monolog": "^2.9",
@@ -35,7 +35,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "1.1.x-dev",
+			"dev-master": "1.2.x-dev",
 			"dev-develop": "1.x-dev"
 		}
 	}

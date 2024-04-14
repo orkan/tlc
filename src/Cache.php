@@ -207,7 +207,7 @@ class Cache
 	 */
 	public function name( string $id ): string
 	{
-		return sprintf( '%s/%s.gz', $this->dir, $this->Utils->slugify( $id ) );
+		return sprintf( '%s/%s.gz', $this->dir, $this->Utils->strSlug( $id ) );
 	}
 
 	/**

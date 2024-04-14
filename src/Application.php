@@ -13,8 +13,8 @@ namespace Orkan\TLC;
 class Application extends \Orkan\Application
 {
 	const APP_NAME = 'TLC';
-	const APP_VERSION = '1.1.0-RC2';
-	const APP_DATE = 'Thu, 07 Mar 2024 16:33:20 +01:00';
+	const APP_VERSION = '1.2.0';
+	const APP_DATE = 'Sun, 14 Apr 2024 18:12:31 +02:00';
 
 	/**
 	 * @link https://patorjk.com/software/taag/#p=display&v=0&f=Lean&t=TLC
@@ -39,7 +39,7 @@ _/      _/_/_/_/    _/_/_/';
 	/**
 	 * {@inheritdoc}
 	 */
-	protected function defaults()
+	private function defaults()
 	{
 		/**
 		 * [json_throttle]
@@ -47,7 +47,7 @@ _/      _/_/_/_/    _/_/_/';
 		 * [json_headers]
 		 * @see Factory::getJson()
 		 *
-		 * [extensions]
+		 * [app_php_ext]
 		 * Append to parent's list!
 		 *
 		 * @formatter:off */
@@ -57,7 +57,7 @@ _/      _/_/_/_/    _/_/_/';
 			'json_headers'      => [
 				'X-Requested-With: XMLHttpRequest',
 			],
-			'extensions'  => [
+			'app_php_ext' => [
 				'curl'    => true,
 				'openssl' => true,
 			],
