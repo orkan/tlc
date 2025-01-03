@@ -67,6 +67,15 @@ class Curl extends TransportAbstract
 		 * This won't change the CURLOPT_HTTPHEADER => "Accept-Encoding: ..." string sent to the server, however
 		 * an empty string will force cURL to manage the response encoding!
 		 *
+		 * [CURLOPT_CONNECTTIMEOUT]
+		 * Connection timeout only
+		 *
+		 * [CURLOPT_TIMEOUT]
+		 * Total timeout: connection + data transfer
+		 *
+		 * [CURLOPT_CAINFO]
+		 * CA certificates. Can be set globbaly in php.ini: [curl] curl.cainfo="path to crt file"
+		 *
 		 * @formatter:off */
 		$this->options = [
 			CURLOPT_USERAGENT      => $Factory->get( 'net_useragent' ),
