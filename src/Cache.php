@@ -40,7 +40,7 @@ class Cache
 	 *
 	 * @var \DateTime
 	 */
-	protected $DT;
+	protected $Date;
 
 	/*
 	 * Services:
@@ -58,8 +58,8 @@ class Cache
 		$this->Utils = $Factory->Utils();
 		$this->Logger = $Factory->Logger();
 
-		$this->DT = new \DateTime( 'now', ( new \DateTimeZone( $Factory->cfg( 'app_timezone' ) ) ) );
-		$this->dir = $Factory->cfg( 'cache_dir' ) . '/' . $Factory->cfg( 'cache_name' );
+		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
+		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name' );
 	}
 
 	/**
@@ -69,7 +69,7 @@ class Cache
 	{
 		/* @formatter:off */
 		return [
-			'cache_keep' => 24 * 3600, // Cache duration (secs). [0] disabled, [-1] keep forever.
+			'cache_keep' => 24 * 3600, // Cache duration (sec). [0] disabled, [-1] keep forever.
 			'cache_name' => 'unknown',
 			'cache_dir'  => dirname( __DIR__ ) . '/cache', // [vendor/author/package]/cache
 		];
@@ -89,7 +89,7 @@ class Cache
 	 */
 	private function render( string $file )
 	{
-		$time = is_file( $file ) ? $this->DT->setTimestamp( filemtime( $file ) )->format( 'Y-m-d H:i:s' ) : 'unavailable';
+		$time = is_file( $file ) ? $this->Date->setTimestamp( filemtime( $file ) )->format( 'Y-m-d H:i:s' ) : 'unavailable';
 		return sprintf( '%s [%s]', $file, $time );
 	}
 
@@ -99,7 +99,7 @@ class Cache
 	 */
 	private function prepare( bool $force = false ): bool
 	{
-		if ( in_array( $this->Factory->cfg( 'cache_keep' ), [ self::DISABLED, self::FOREVER ] ) ) {
+		if ( in_array( $this->Factory->get( 'cache_keep' ), [ self::DISABLED, self::FOREVER ] ) ) {
 			return false;
 		}
 
@@ -110,8 +110,8 @@ class Cache
 		// Prepare cache dir
 		if ( is_dir( $this->dir ) ) {
 
-			$this->DT->setTimestamp( $expired = time() - $this->Factory->cfg( 'cache_keep' ) );
-			$this->Logger->debug( 'Clear cache until: ' . $this->DT->format( 'Y-m-d H:i:s' ) );
+			$this->Date->setTimestamp( $expired = time() - $this->Factory->get( 'cache_keep' ) );
+			$this->Logger->debug( 'Clear cache until: ' . $this->Date->format( 'Y-m-d H:i:s' ) );
 
 			// Clear expired cache
 			foreach ( glob( $this->dir . '/*' ) as $cfile ) {
@@ -186,7 +186,7 @@ class Cache
 		$old = $this->name( $id );
 		$new = $this->name( $id . '-' . $sufix . time() );
 
-		if ( self::DISABLED === $this->Factory->cfg( 'cache_keep' ) || !is_file( $old ) ) {
+		if ( self::DISABLED === $this->Factory->get( 'cache_keep' ) || !is_file( $old ) ) {
 			return false;
 		}
 

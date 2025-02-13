@@ -1,17 +1,16 @@
 <?php
-function info( $nl = "\n" ) {
+function info() {
 	global $action;
-	$text = [
+	return [
 		sprintf( 'REQUEST_METHOD: [%s]', $_SERVER['REQUEST_METHOD'] ),
 		sprintf( 'FORM action: [%s]', $action ),
 		sprintf( '$_COOKIE: %s', trim( print_r( $_COOKIE, 1 ) ) ),
 		sprintf( '$_REQUEST: %s', trim( print_r( $_REQUEST, 1 ) ) ),
 	];
-	return implode( $nl, $text );
 }
 
-$cookieName = 'demo2cookie';
-$nonce = 'demo2-nonce';
+$cookieName = 'login_form-cookie';
+$nonce = 'login_form-nonce';
 $action = 'login';
 $err = [];
 
@@ -48,7 +47,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 	}
 
 	// Save POST data before redirect
-	file_put_contents( __FILE__ . '-post.txt', info() );
+	file_put_contents( __FILE__ . '-post.txt', implode( "\n", info() ) );
 
 	if ( $err ) {
 		die( implode( ', ', $err ) );
@@ -68,20 +67,23 @@ if ( isset( $_COOKIE[$cookieName] ) ) {
 <html>
 <head>
 <meta charset="utf-8">
-<style>body { line-height: 2em; } pre { line-height: .7em; }</style>
-<title>orkan/tlc - demo2: Loging in with cookie</title>
+<style>body { line-height: 2em; } pre { line-height: 1em; }</style>
+<title><?php echo basename( __DIR__ ) ?> - TLC Demo</title>
 </head>
 <body>
+<h1>TLC Demo: Loging in with cookie</h1>
 <pre>
-<?php echo info( "<br>\n" ) ?><br>
+<?php echo implode( "\n", info() ) ?>
 </pre>
 <form id="form-<?php echo $action ?>" method="post"
 <?php printf( 'action="%s?action=%s"', $_SERVER['PHP_SELF'], $action ) ?>><?php
 if ( 'login' === $action ) {
-	echo 'User: <input type="text" name="user" /><br>';
-	echo 'Pass: <input type="text" name="pass" /><br>';
-	echo '<input type="hidden" name="nonce" value="' . $nonce . '" />';
-	echo '<button>Log In</button>';
+	echo implode( "<br>\n", [
+		'User: <input type="text" name="user">',
+		'Pass: <input type="text" name="pass">',
+		'<input type="hidden" name="nonce" value="' . $nonce . '" />',
+		'<button>Log In</button>',
+	]);
 }
 else {
 	printf( 'Loged in as: <strong>%s</strong> (pass: %s)<br><button>Log Out</button>', $uname, $upass );
@@ -89,6 +91,5 @@ else {
 
 ?>
 </form>
-
 </body>
 </html>

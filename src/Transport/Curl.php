@@ -56,6 +56,10 @@ class Curl extends TransportAbstract
 		 * Cookie: CURLOPT_COOKIEFILE; CURLOPT_COOKIE;
 		 * These cookies are appended after JAR file cookies thus overwriting previous with same name!
 		 *
+		 * [CURLOPT_USERAGENT]
+		 * It is used to set the User-Agent: header field in the HTTP request sent to the remote server.
+		 * You can also set any custom header with CURLOPT_HTTPHEADER.
+		 *
 		 * [CURLOPT_HTTPHEADER]
 		 * Send additional headers
 		 *
@@ -121,7 +125,6 @@ class Curl extends TransportAbstract
 		 * [net_timeout]
 		 * Max time to wait while trying to connect. O == infinite
 		 *
-		 *
 		 * @formatter:off */
 		return [
 			'net_retry'   => 5,
@@ -133,92 +136,93 @@ class Curl extends TransportAbstract
 	/**
 	 * Do [get] http request.
 	 *
-	 * @see \Orkan\TLC\Transport\TransportAbstract::throttle()
+	 * Options:
+	 * [curl] => force custom CURLOPTS_***
 	 *
-	 * @param string $url     Full target url
-	 * @param array  $options Extra options: Array (
-	 *   [query]    => urlencoded string (if not in url)
-	 *   [curl]     => per query CURLOPTS_
-	 *   [throttle] => throttle opts
-	 * )
-	 * @return string Response from the server
+	 * {@inheritDoc}
+	 * @see \Orkan\TLC\Transport\TransportAbstract::get()
 	 */
-	public function get( string $url, array $options = [] ): string
+	public function get( string $url, array $opt = [] ): string
 	{
-		$options['curl'] = $options['curl'] ?? [];
+		$opt['curl'] = $opt['curl'] ?? [];
 
 		/* @formatter:off */
-		$options['curl'] += [
+		$opt['curl'] += [
 			CURLOPT_URL => $url,
 		];
 		/* @formatter:on */
 
-		return $this->exec( $options );
+		return $this->exec( $opt );
 	}
 
 	/**
 	 * Do [post] http request.
 	 *
+	 * Options:
+	 * [curl]   => force custom CURLOPTS_***
+	 * [fields] => (array)  send as: multipart/form-data
+	 * [fields] => (string) send as: application/x-www-form-urlencoded
+	 * @see http_build_query()
+	 *
 	 * {@inheritdoc}
 	 * @see \Orkan\TLC\Transport\TransportAbstract::post()
-	 *
-	 * [$options]
-	 * @see \Orkan\TLC\Transport\Curl::get()
 	 */
-	public function post( string $url, array $options = [] ): string
+	public function post( string $url, array $opt = [] ): string
 	{
-		$options['curl'] = $options['curl'] ?? [];
+		$opt['curl'] = $opt['curl'] ?? [];
 
 		/* @formatter:off */
-		$options['curl'] += [
-				CURLOPT_URL        => $url,
-				CURLOPT_POST       => true,
-				CURLOPT_POSTFIELDS => $options['fields'] ?? [],
+		$opt['curl'] += [
+			CURLOPT_URL        => $url,
+			CURLOPT_POST       => true,
+			CURLOPT_POSTFIELDS => $opt['fields'] ?? [],
 		];
 		/* @formatter:on */
 
-		return $this->exec( $options );
+		return $this->exec( $opt );
 	}
 
 	/**
 	 * Make HTTP request.
 	 *
-	 * @param array $options Array( [curl] => CURLOPTS_???, [throttle] => throttle opts, ... )
-	 * @return string Response from the server
+	 * TLC options:
+	 * [curl] => force custom CURLOPTS_***
+	 *
+	 * @param array   $opt TLC options
+	 * @return string Server response
 	 */
-	protected function exec( array $options ): string
+	protected function exec( array $opt ): string
 	{
 		static $constErrors = [];
 
 		/* @formatter:off */
-		$options = array_replace_recursive([
-			'curl'     => [],
+		$opt = array_replace_recursive([
 			'throttle' => [
-				'host' => parse_url( $options['curl'][CURLOPT_URL], PHP_URL_HOST ),
+				'host' => $this->host( $opt['curl'][CURLOPT_URL] ),
 			],
-		], $options );
+		], $opt );
 		/* @formatter:on */
 
 		// Join arrays. Preserve numerical keys! Tip: Left side arrays wins!
-		$curlopts = $options['curl'] + $this->options;
+		$curlopts = $opt['curl'] + $this->options;
 
 		// Force use dafault http headers if empty string
 		if ( !$curlopts[CURLOPT_HTTPHEADER] ) {
 			unset( $curlopts[CURLOPT_HTTPHEADER] );
 		}
 
-		DEBUG && $this->Logger->debug( 'Options ' . $this->Utils->print_r( $options ) );
-		DEBUG && $this->Logger->debug( $this->printOptions( $curlopts ) );
+		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
+		DEBUG && $this->Logger->debug( 'Curl ' . $this->printOptions( $curlopts ) );
 
 		$Request = $this->Factory->Request();
 		$Request->init();
 		$Request->setOptArray( $curlopts );
-		$this->lastUrl = $curlopts[CURLOPT_URL];
+		$this->Stats->lastUrl = $curlopts[CURLOPT_URL];
 
 		$retry = $this->Factory->get( 'net_retry' );
 
 		while ( $retry-- ) {
-			$this->throttle( $options['throttle'] );
+			$this->throttle( $opt['throttle'] );
 
 			$response = $Request->exec();
 			if ( false !== $response ) {
@@ -245,27 +249,27 @@ class Curl extends TransportAbstract
 			throw new \RuntimeException( $error );
 		}
 
-		$this->lastInfo = $Request->getInfo();
+		$info = $Request->getInfo();
 		$Request->close();
 
-		DEBUG && $this->Logger->debug( 'Result ' . $this->Utils->print_r( $this->lastInfo ) );
+		DEBUG && $this->Logger->debug( 'Result ' . $this->Utils->print_r( $info ) );
 
 		/**
 		 * Grab some statistics
 		 * @link https://www.php.net/manual/en/function.curl-getinfo.php
 		 */
-		$this->stats['total_time'] += $this->lastInfo['total_time']; // fractional seconds (float)
-		$this->stats['total_sent'] += $this->lastInfo['header_size'] + $this->lastInfo['request_size'];
-		$this->stats['total_size'] += $this->lastInfo['size_download']; // @todo: Missing response headers size
+		$this->Stats->lastInfo = $info;
+		$this->Stats->time += $info['total_time']; // fractional seconds (float)
+		$this->Stats->sent += $info['header_size'] + $info['request_size'];
+		$this->Stats->size += $info['size_download']; // @todo: Missing response headers size
 
 		return $response ?? '';
 	}
 
 	/**
-	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::printOptions()
+	 * Print all CURLOPT_***
 	 */
-	public function printOptions( array $options ): string
+	public function printOptions( array $opt ): string
 	{
 		static $constants = [];
 
@@ -273,6 +277,6 @@ class Curl extends TransportAbstract
 			$constants = $this->Utils->constants( 'CURLOPT_', 'curl' );
 		}
 
-		return $this->Utils->print_r( $options, true, $constants );
+		return $this->Utils->print_r( $opt, [ 'keys' => $constants ] );
 	}
 }

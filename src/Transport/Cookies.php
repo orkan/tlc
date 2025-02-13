@@ -274,7 +274,7 @@ class Cookies
 		DEBUG && $this->Logger->debug( 'Response ' . $response );
 
 		$matches = $cookies = [];
-		$info = $this->Transport->lastInfo();
+		$info = $this->Factory->TransportStats()->lastInfo;
 
 		$response = substr( $response, 0, $info['header_size'] ?? 0);
 		preg_match_all( '/^Set-Cookie: (.*)$/mi', $response, $matches );

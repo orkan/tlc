@@ -21,7 +21,7 @@ use Symfony\Component\DomCrawler\UriResolver;
 
 /*
  * =====================================================================================================================
- * Setup
+ * Functions
  */
 function getBody( $html )
 {
@@ -30,11 +30,15 @@ function getBody( $html )
 	$text = trim( preg_replace( '/(?:\s{2,}+|[\t ])/', ' ', $text ) );
 	return $text;
 }
+
+/*
+ * =====================================================================================================================
+ * Setup
+ */
 require dirname( __DIR__, 4 ) . '/autoload.php';
 define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
-$baseName = basename( __FILE__, '.php' );
 
-$Factory = new Factory( require __DIR__ . "/$baseName.cfg.php" );
+$Factory = new Factory( require __DIR__ . '/cfg.php' );
 $Application = new Application( $Factory );
 $Application->run();
 
@@ -45,9 +49,8 @@ $Application->run();
 $Factory->Utils()->writeln( 'CMD:START', 1 );
 $Factory->Logger()->info( 'LOG:START' );
 
-$html = $Factory->Transport()->get( $Factory->cfg( 'app_home' ) );
-
-printf( "--------- GET1: %s\n", $Factory->cfg( 'app_home' ) );
+printf( "--------- GET1: %s\n", $Factory->get( 'url_form' ) );
+$html = $Factory->Transport()->get( $Factory->get( 'url_form' ) );
 var_dump( getBody( $html ) );
 
 $Crawler = new Crawler( $html );
@@ -56,20 +59,21 @@ $Node = $Crawler->filter( '#form-login' );
 if ( $Node->count() ) {
 	$Factory->Logger()->info( 'Loging in...' );
 
-	// Create FORM object - action uri must be resolved to absolute url. Use app_home for scheme & host when relative.
-	$uri = UriResolver::resolve( $Node->attr( 'action' ), $Factory->cfg( 'app_home' ) );
+	// Create FORM object - action uri must be resolved to absolute url.
+	// Use cfg[url_form] for scheme & host when relative.
+	$uri = UriResolver::resolve( $Node->attr( 'action' ), $Factory->get( 'url_form' ) );
 	$Form = new Form( $Node->getNode( 0 ), $uri );
 
 	// Merge current FORM fields with Login credentials from config file
-	$fields = array_merge( $Form->getValues(), $Factory->cfg( 'app_user' ) );
+	$fields = array_merge( $Form->getValues(), $Factory->get( 'app_user' ) );
 	//$fields['nonce'] = 'invalid'; // Uncomment to raise errors with invalid nonce
 
-	$post = $Factory->Transport()->post( $Form->getUri(), [ 'fields' => $fields ] );
 	printf( "--------- POST: %s\n", $Form->getUri() );
+	$post = $Factory->Transport()->post( $Form->getUri(), [ 'fields' => $fields ] );
 	var_dump( getBody( $post ) );
 
-	$html = $Factory->Transport()->get( $Factory->cfg( 'app_home' ) );
-	printf( "--------- GET2: %s\n", $Factory->cfg( 'app_home' ) );
+	printf( "--------- GET2: %s\n", $Factory->get( 'url_form' ) );
+	$html = $Factory->Transport()->get( $Factory->get( 'url_form' ) );
 	var_dump( getBody( $html ) );
 
 	$Crawler = new Crawler( $html );
@@ -85,7 +89,7 @@ $Factory->Logger()->info( 'LOG:END' );
 
 if ( getenv( 'APP_CLEAN' ) ) {
 	// Remove cookie for next run
-	if ( is_file( $cookie = $Factory->cfg( 'net_cookiefile' ) ) ) {
+	if ( is_file( $cookie = $Factory->get( 'net_cookiefile' ) ) ) {
 		rename( $cookie, "{$cookie}.last" );
 	}
 }

@@ -1,4 +1,4 @@
-# TLC - Transport, Log, Cache `v1.3.0`
+# TLC - Transport, Logging, Cache `v2.0.0`
 Simple PHP/cURL framework with Logger, Cache and more!
 
 ## Usage
@@ -27,11 +27,11 @@ $Factory->Transport()->post( $url, [ 'fields' => $fields ] );
 $Factory->Logger()->info( 'Form fields: ' . print_r( fields, true ) );
 ```
 
-For more examples see [`/demos`](/demos) folder.
+For more examples see [`/demo`](/demo) folder.
 
 ## Third Party Packages
-* [Seldaek / Monolog](https://github.com/Seldaek/monolog)
-* [Symfony / DomCrawler](https://symfony.com/doc/current/components/dom_crawler.html)
+* [Seldaek/Monolog](https://github.com/Seldaek/monolog)
+* [Symfony/DomCrawler](https://symfony.com/doc/current/components/dom_crawler.html)
 
 ## About
 ### Requirements
@@ -47,4 +47,4 @@ PHP  ^7.4
 MIT
 
 ### Updated
-Fri, 03 Jan 2025 09:00:57 +01:00
+Thu, 13 Feb 2025 04:17:01 +01:00

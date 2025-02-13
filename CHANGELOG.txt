@@ -1,4 +1,34 @@
 ===================================================================================================
+v2.0.0
+
+Renamed services:
+----------------
+Factory::Flaresolverr() > Factory::Proxy()
+
+Moved methods:
+---------------
+Factory::statsNet() > Transport::stats()
+Factory::getUrl()   > Transport::getUrl()
+Factory::getJson()  > Transport::getJson()
+
+Moved cfg:
+---------------
+Application::cfg[json_throttle]     > Transport::cfg[json_throttle]
+Application::cfg[json_throttle_max] > Transport::cfg[json_throttle_max]
+Application::cfg[json_headers]      > Transport::cfg[json_headers]
+Transport::getUrl(..., opt[curl][CURLOPT_HTTPHEADER]) is no longer merged with cfg[json_headers]
+
+Renamed cfg:
+---------------
+Transport::cfg[cache][reload] > cfg[cache][refresh]
+
+Removed cfg:
+---------------
+Transport::getUrl(..., opt[tlc][url]) > no need since Proxy::getUrl() now handles it
+Transport::lastUrl()                  > Factory::TransportStats()->lastUrl
+Transport::lastInfo()                 > Factory::TransportStats()->lastInfo
+
+===================================================================================================
 v1.1.0
 
 Removed methods:
@@ -10,8 +40,8 @@ v1.0.0
 
 Renamed cfg:
 ---------------
-TransportAbstract::cfg[request_retry] => Curl[net_retry]
-TransportAbstract::cfg[net_connecttimeout] => Curl[net_timeout]
+TransportAbstract::cfg[request_retry]      > Curl[net_retry]
+TransportAbstract::cfg[net_connecttimeout] > Curl[net_timeout]
 
 Updated methods:
 ---------------

@@ -18,9 +18,8 @@ use Orkan\TLC\Factory;
  */
 require dirname( __DIR__, 4 ) . '/autoload.php';
 define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
-$baseName = basename( __FILE__, '.php' );
 
-$Factory = new Factory( require __DIR__ . "/$baseName.cfg.php" );
+$Factory = new Factory( require __DIR__ . '/cfg.php' );
 $Application = new Application( $Factory );
 $Application->run();
 
@@ -31,10 +30,9 @@ $Application->run();
 $Factory->Utils()->writeln( 'CMD:START', 1 );
 $Factory->Logger()->info( 'LOG:START' );
 
-//$out = $Application->get( $url = 'http://localhost:1888' ); // Error #7 CURLE_COULDNT_CONNECT
-$data = $Factory->getUrl( $url = 'http://localhost' );
-file_put_contents( $file = $Factory->Logger()->getFilename() . '-out.txt', $data );
-$Factory->Utils()->writeln( sprintf( 'Saved [%s] to "%s"', $url, $file ), 2 );
+$data = $Factory->getUrl( $url = $Factory->get( 'url_page' ) );
+file_put_contents( $file = $Factory->Utils()->strSlug( $url ) . '.html', $data );
+$Factory->Utils()->writeln( "Saved [$url] to [$file]" );
 
 $Factory->Utils()->writeln( 'CMD:END', 1 );
 $Factory->Logger()->info( 'LOG:END' );

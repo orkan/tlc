@@ -2,11 +2,12 @@ REQUEST_METHOD: [POST]
 FORM action: [login]
 $_COOKIE: Array
 (
+    [XDEBUG_SESSION] => ECLIPSE_DBGP
 )
 $_REQUEST: Array
 (
     [action] => login
-    [user] => Demo
-    [pass] => Password
-    [nonce] => demo2-nonce
+    [user] => aaa
+    [pass] => ddd
+    [nonce] => login_form-nonce
 )
