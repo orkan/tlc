@@ -1,5 +1,8 @@
 # TLC - Transport, Logging, Cache `v2.0.0`
-Simple PHP/cURL framework with Logger, Cache and more!
+Simple PHP/cURL/FlareSolverr framework with Logger, Cache and more!
+
+## Installation
+`$ composer require orkan/tlc`
 
 ## Usage
 ```php
@@ -29,16 +32,13 @@ $Factory->Logger()->info( 'Form fields: ' . print_r( fields, true ) );
 
 For more examples see [`/demo`](/demo) folder.
 
-## Third Party Packages
-* [Seldaek/Monolog](https://github.com/Seldaek/monolog)
-* [Symfony/DomCrawler](https://symfony.com/doc/current/components/dom_crawler.html)
-
 ## About
 ### Requirements
 PHP  ^7.4
 
-## Installation
-`$ composer require orkan/tlc`
+## Third Party Packages
+* [Seldaek/Monolog](https://github.com/Seldaek/monolog)
+* [Symfony/DomCrawler](https://symfony.com/doc/current/components/dom_crawler.html)
 
 ### Author
 [Orkan](https://github.com/orkan)
@@ -47,4 +47,4 @@ PHP  ^7.4
 MIT
 
 ### Updated
-Thu, 13 Feb 2025 04:17:01 +01:00
+Tue, 04 Mar 2025 00:25:09 +01:00

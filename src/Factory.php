@@ -22,9 +22,9 @@ class Factory extends \Orkan\Factory
 	protected $Request;
 	protected $Proxy;
 
-	// ================================================================================================================
+	// =================================================================================================================
 	// SERVICES
-	// ================================================================================================================
+	// =================================================================================================================
 
 	/**
 	 * @return Cache
@@ -51,11 +51,11 @@ class Factory extends \Orkan\Factory
 	}
 
 	/**
-	 * @return Transport\Stats
+	 * @return Transport\TransportStats
 	 */
 	public function TransportStats()
 	{
-		return $this->TransportStats ?? $this->TransportStats = new Transport\Stats( $this );
+		return $this->TransportStats ?? $this->TransportStats = new Transport\TransportStats( $this );
 	}
 
 	/**

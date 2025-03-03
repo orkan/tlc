@@ -22,22 +22,18 @@ class Cache
 	const FOREVER = -1;
 
 	/**
-	 * Prepare cache only once per instance.
-	 *
-	 * @var bool
+	 * Is cache subfolder prepared?
+	 * @see Cache::prepare()
 	 */
 	protected $prepared = false;
 
 	/**
-	 * Cache sub-dir for current instance.
-	 *
-	 * @var string
+	 * Cache dir for current instance.
 	 */
 	protected $dir;
 
 	/**
-	 * A DateTime object for internal use.
-	 *
+	 * Date object for internal use.
 	 * @var \DateTime
 	 */
 	protected $Date;
@@ -51,6 +47,9 @@ class Cache
 
 	/**
 	 * Setup.
+	 *
+	 * IMPORTANT:
+	 * Only one instance allowed, meaning theres only one cache location for the whole app!
 	 */
 	public function __construct( Factory $Factory )
 	{
@@ -59,25 +58,34 @@ class Cache
 		$this->Logger = $Factory->Logger();
 
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
-		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name' );
+		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
 	}
 
 	/**
-	 * Get default config.
+	 * Get defaults.
+	 *
+	 * [cache_keep]
+	 * Cache duration (sec). [0] disabled, [-1] keep forever.
+	 *
+	 * [cache_dir]
+	 * Home cache dir. Def. [vendor/author/package]/cache
+	 *
+	 * [cache_name]
+	 * Cache subfolder name inside cfg[cache_dir]
 	 */
 	protected function defaults(): array
 	{
 		/* @formatter:off */
 		return [
-			'cache_keep' => 24 * 3600, // Cache duration (sec). [0] disabled, [-1] keep forever.
-			'cache_name' => 'unknown',
-			'cache_dir'  => dirname( __DIR__ ) . '/cache', // [vendor/author/package]/cache
+			'cache_keep' => 24 * 3600,
+			'cache_dir'  => dirname( __DIR__ ) . '/cache',
+			'cache_name' => null,
 		];
 		/* @formatter:on */
 	}
 
 	/**
-	 * Get full path to current cache dir.
+	 * Cache dir full path.
 	 */
 	public function dir(): string
 	{
@@ -94,8 +102,8 @@ class Cache
 	}
 
 	/**
-	 * Cache refresh.
-	 * Delete all cached files older than ['cache_keep']
+	 * Refresh cache?
+	 * Delete all cached files older than cfg[cache_keep]
 	 */
 	private function prepare( bool $force = false ): bool
 	{
@@ -111,7 +119,7 @@ class Cache
 		if ( is_dir( $this->dir ) ) {
 
 			$this->Date->setTimestamp( $expired = time() - $this->Factory->get( 'cache_keep' ) );
-			$this->Logger->debug( 'Clear cache until: ' . $this->Date->format( 'Y-m-d H:i:s' ) );
+			$this->Logger->debug( 'Clear cache before: ' . $this->Date->format( DATE_RSS ) );
 
 			// Clear expired cache
 			foreach ( glob( $this->dir . '/*' ) as $cfile ) {
@@ -224,7 +232,7 @@ class Cache
 	/**
 	 * Remove cached file by path.
 	 */
-	private function unlink( string $cfile, int $backtrace = 0 ): bool
+	protected function unlink( string $cfile, int $backtrace = 0 ): bool
 	{
 		DEBUG && $this->Logger->debug( $this->render( $cfile ), $backtrace );
 		return @unlink( $cfile );

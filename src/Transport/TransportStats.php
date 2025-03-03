@@ -23,7 +23,7 @@ use Orkan\TLC\Factory;
  *
  * @author Orkan <orkans+tlc@gmail.com>
  */
-class Stats extends \Orkan\Dataset
+class TransportStats extends \Orkan\Dataset
 {
 	/**
 	 * Read-only fields.
