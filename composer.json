@@ -19,7 +19,7 @@
 	],
 	"require": {
 		"php": "^7.4",
-		"orkan/utils": "^10"
+		"orkan/utils": "^10.1"
 	},
 	"require-dev": {
 		"monolog/monolog": "^2.9",
@@ -37,7 +37,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "2.0.x-dev",
+			"dev-master": "2.1.x-dev",
 			"dev-develop": "2.x-dev"
 		}
 	}

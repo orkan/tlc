@@ -12,7 +12,7 @@ use Orkan\TLC\Factory;
  *
  * @author Orkan <orkans+tlc@gmail.com>
  */
-abstract class TransportAbstract
+abstract class Transport
 {
 	/**
 	 * Last call microtime groupped by [host].
@@ -42,11 +42,22 @@ abstract class TransportAbstract
 	public function __construct( Factory $Factory )
 	{
 		$this->Factory = $Factory->merge( self::defaults() );
-		$this->Utils = $this->Factory->Utils();
-		$this->Logger = $this->Factory->Logger();
-		$this->Loggex = $this->Factory->Loggex();
-		$this->Cache = $this->Factory->Cache();
-		$this->Stats = $this->Factory->TransportStats();
+		$this->Utils = $Factory->Utils();
+		$this->Logger = $Factory->Logger();
+		$this->Loggex = $Factory->Loggex();
+		$this->Cache = $Factory->Cache();
+		$this->Stats = $Factory->TransportStats();
+
+		if ( null === $Factory->cfg( 'net_useragent' ) ) {
+			/* @formatter:off */
+			$Factory->cfg( 'net_useragent', $this->Utils->netUseragent([
+				'brand'  => [ 'chrome', 'firefox' ],
+				'os'     => 'windows',
+				'device' => 'desktop',
+				'last'   => 5,
+			]));
+			/* @formatter:on */
+		}
 	}
 
 	/**
@@ -75,7 +86,8 @@ abstract class TransportAbstract
 			],
 			'net_throttle'      => 2e+6,
 			'net_throttle_max'  => 6e+6,
-			'net_useragent'     => Useragents::getUA(),
+			'net_headers'       => [],
+			'net_useragent'     => null,
 		];
 		/* @formatter:on */
 	}
@@ -83,8 +95,8 @@ abstract class TransportAbstract
 	/**
 	 * Choose the right method to send http request.
 	 *
-	 * @see \Orkan\TLC\Transport\TransportAbstract::get()
-	 * @see \Orkan\TLC\Transport\TransportAbstract::post()
+	 * @see \Orkan\TLC\Transport\Transport::get()
+	 * @see \Orkan\TLC\Transport\Transport::post()
 	 *
 	 * @param string $method Request method: get|post
 	 */

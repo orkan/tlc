@@ -59,13 +59,18 @@ class Cache
 
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
+
+		if( is_string( $keep = $Factory->get( 'cache_keep' ) ) ) {
+			$Factory->cfg( 'cache_keep', strtotime( $keep ) - time() );
+		}
 	}
 
 	/**
 	 * Get defaults.
 	 *
 	 * [cache_keep]
-	 * Cache duration (sec). [0] disabled, [-1] keep forever.
+	 * Cache duration (int|string). [0] disabled, [-1] keep forever.
+	 * Eg. 24*3600, "1 day", etc...
 	 *
 	 * [cache_dir]
 	 * Home cache dir. Def. [vendor/author/package]/cache
@@ -77,7 +82,7 @@ class Cache
 	{
 		/* @formatter:off */
 		return [
-			'cache_keep' => 24 * 3600,
+			'cache_keep' => '1 day',
 			'cache_dir'  => dirname( __DIR__ ) . '/cache',
 			'cache_name' => null,
 		];

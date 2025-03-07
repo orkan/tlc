@@ -5,11 +5,16 @@ Renamed services:
 ----------------
 Factory::Flaresolverr() > Factory::Proxy()
 
+Renamed class:
+----------------
+TransportAbstract > Transport
+
 Moved methods:
 ---------------
 Factory::statsNet() > Transport::stats()
 Factory::getUrl()   > Transport::getUrl()
 Factory::getJson()  > Transport::getJson()
+Useragents::getUA() > Utils::netUseragent()
 
 Moved cfg:
 ---------------
@@ -20,7 +25,8 @@ Transport::getUrl(..., opt[curl][CURLOPT_HTTPHEADER]) is no longer merged with c
 
 Renamed cfg:
 ---------------
-Transport::cfg[cache][reload] > cfg[cache][refresh]
+Transport::cfg[cache][reload]  > cfg[cache][refresh]
+Curl::cfg[net_httpheader]      > cfg[net_headers]
 
 Removed cfg:
 ---------------
