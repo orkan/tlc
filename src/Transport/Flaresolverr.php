@@ -83,7 +83,7 @@ class Flaresolverr extends Transport
 		 * @formatter:off */
 		return [
 			'proxy_endpoint'    => 'http://localhost:8191/v1',
-			'proxy_sessions'    => true,
+			'proxy_sessions'    => false,
 			'proxy_session_ttl' => 0,
 			'proxy_timeout'     => 60,
 			'proxy_headers'     => [

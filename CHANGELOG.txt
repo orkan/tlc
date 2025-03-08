@@ -1,4 +1,18 @@
 ===================================================================================================
+v2.2.0
+
+Default cfg:
+---------------
+Flaresolverr::cfg[proxy_sessions]: true > false
+
+===================================================================================================
+v2.1.0
+
+Renamed cfg:
+---------------
+Curl::cfg[net_httpheader]      > cfg[net_headers]
+
+===================================================================================================
 v2.0.0
 
 Renamed services:
@@ -26,7 +40,6 @@ Transport::getUrl(..., opt[curl][CURLOPT_HTTPHEADER]) is no longer merged with c
 Renamed cfg:
 ---------------
 Transport::cfg[cache][reload]  > cfg[cache][refresh]
-Curl::cfg[net_httpheader]      > cfg[net_headers]
 
 Removed cfg:
 ---------------

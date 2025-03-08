@@ -60,7 +60,8 @@ class Cache
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
 
-		if( is_string( $keep = $Factory->get( 'cache_keep' ) ) ) {
+		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
+		if ( is_string( $keep ) ) {
 			$Factory->cfg( 'cache_keep', strtotime( $keep ) - time() );
 		}
 	}
