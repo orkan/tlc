@@ -1,0 +1,15 @@
+===================================================================================================
+Response time increasing
+
+FlareSolverr 3.3.21
+Chrome / Chromium major version: 123
+
+PROBLEM:
+Response times increasing from 2 sec on 1st request to 30 sec after 20 requests.
+
+SOLUTION 1:
+Disable cfg[proxy_sessions] = false, which gives acceptable 5s response times.
+
+SOLUTION 2:
+Enable cfg[proxy_sessions] = true, together with cfg[proxy_session_ttl] = 60
+Gives 1-2s response times!

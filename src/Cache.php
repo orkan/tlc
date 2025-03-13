@@ -59,27 +59,37 @@ class Cache
 
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
+
+		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
+		if ( is_string( $keep ) ) {
+			$Factory->cfg( 'cache_keep', strtotime( $keep ) - time() );
+		}
 	}
 
 	/**
 	 * Get defaults.
 	 *
-	 * [cache_keep]
-	 * Cache duration (sec). [0] disabled, [-1] keep forever.
-	 *
 	 * [cache_dir]
-	 * Home cache dir. Def. [vendor/author/package]/cache
+	 * Home cache dir. Default: {vendor/author/package}/cache
 	 *
 	 * [cache_name]
 	 * Cache subfolder name inside cfg[cache_dir]
+	 *
+	 * [cache_keep]
+	 * Cache duration (int|string). [0] disabled, [-1] keep forever
+	 * Eg. 24*3600, "1 day", etc...
+	 *
+	 * [cache_wipe]
+	 * Randomly purge preserved cache to increase timestamp deviation of remaining artefacts
 	 */
 	protected function defaults(): array
 	{
 		/* @formatter:off */
 		return [
-			'cache_keep' => 24 * 3600,
-			'cache_dir'  => dirname( __DIR__ ) . '/cache',
+			'cache_dir'  => getenv( 'CACHE_DIR' ) ?: dirname( __DIR__ ) . '/cache',
 			'cache_name' => null,
+			'cache_keep' => getenv( 'CACHE_KEEP' ) ?: '1 day',
+			'cache_wipe' => 0,
 		];
 		/* @formatter:on */
 	}
@@ -118,14 +128,26 @@ class Cache
 		// Prepare cache dir
 		if ( is_dir( $this->dir ) ) {
 
-			$this->Date->setTimestamp( $expired = time() - $this->Factory->get( 'cache_keep' ) );
-			$this->Logger->debug( 'Clear cache before: ' . $this->Date->format( DATE_RSS ) );
+			$expired = time() - $this->Factory->get( 'cache_keep' );
+			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $expired )->format( DATE_RSS ) );
 
 			// Clear expired cache
-			foreach ( glob( $this->dir . '/*' ) as $cfile ) {
-				if ( filemtime( $cfile ) < $expired ) {
-					$this->unlink( $cfile );
+			$wipe = [];
+			foreach ( glob( $this->dir . '/*' ) as $file ) {
+				if ( filemtime( $file ) < $expired ) {
+					$this->unlink( $file );
 				}
+				else {
+					$wipe[] = $file;
+				}
+			}
+
+			// @todo test
+			$this->Logger->debug( 'Wipe more cache: ' . $this->Factory->get( 'cache_wipe' ) );
+			$this->Utils->arrayShuffle( $wipe );
+			$wipe = array_slice( $wipe, 0, $this->Factory->get( 'cache_wipe' ) );
+			foreach ( $wipe as $file ) {
+				$this->unlink( $file );
 			}
 		}
 		// Create cache dir

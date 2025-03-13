@@ -1,4 +1,19 @@
 ===================================================================================================
+v2.1.0
+
+Renamed cfg:
+---------------
+Curl::cfg[net_httpheader] > cfg[net_headers]
+
+Default cfg:
+---------------
+Flaresolverr::cfg[proxy_session_ttl]: 0 > 60
+
+Renamed class:
+----------------
+TransportAbstract > Transport
+
+===================================================================================================
 v2.0.0
 
 Renamed services:
@@ -10,6 +25,7 @@ Moved methods:
 Factory::statsNet() > Transport::stats()
 Factory::getUrl()   > Transport::getUrl()
 Factory::getJson()  > Transport::getJson()
+Useragents::getUA() > Utils::netUseragent()
 
 Moved cfg:
 ---------------
@@ -20,7 +36,7 @@ Transport::getUrl(..., opt[curl][CURLOPT_HTTPHEADER]) is no longer merged with c
 
 Renamed cfg:
 ---------------
-Transport::cfg[cache][reload] > cfg[cache][refresh]
+Transport::cfg[cache][reload]  > cfg[cache][refresh]
 
 Removed cfg:
 ---------------

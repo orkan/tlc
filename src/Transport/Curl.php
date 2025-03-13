@@ -15,7 +15,7 @@ use Orkan\TLC\Factory;
  *
  * @author Orkan <orkans+tlc@gmail.com>
  */
-class Curl extends TransportAbstract
+class Curl extends Transport
 {
 
 	/**
@@ -49,7 +49,7 @@ class Curl extends TransportAbstract
 		 * @link https://www.php.net/manual/en/function.curl-setopt.php
 		 *
 		 * Can be replaced by cfg['net_curl']
-		 * @see \Orkan\TLC\Transport\TransportAbstract::defaults()
+		 * @see \Orkan\TLC\Transport\Transport::defaults()
 		 *
 		 * [CURLOPT_COOKIE]
 		 * Cookie: http header. The resulting header line is:
@@ -83,7 +83,7 @@ class Curl extends TransportAbstract
 		 * @formatter:off */
 		$this->options = [
 			CURLOPT_USERAGENT      => $Factory->get( 'net_useragent' ),
-			CURLOPT_HTTPHEADER     => $Factory->get( 'net_httpheader' ),
+			CURLOPT_HTTPHEADER     => $Factory->get( 'net_headers' ),
 			CURLOPT_ENCODING       => '',
 			CURLOPT_CONNECTTIMEOUT => $Factory->get( 'net_timeout' ),
 			CURLOPT_RETURNTRANSFER => true,
@@ -114,7 +114,7 @@ class Curl extends TransportAbstract
 
 	/**
 	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::defaults()
+	 * @see \Orkan\TLC\Transport\Transport::defaults()
 	 */
 	protected function defaults(): array
 	{
@@ -140,7 +140,7 @@ class Curl extends TransportAbstract
 	 * [curl] => force custom CURLOPTS_***
 	 *
 	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::get()
+	 * @see \Orkan\TLC\Transport\Transport::get()
 	 */
 	public function get( string $url, array $opt = [] ): string
 	{
@@ -165,7 +165,7 @@ class Curl extends TransportAbstract
 	 * @see http_build_query()
 	 *
 	 * {@inheritdoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::post()
+	 * @see \Orkan\TLC\Transport\Transport::post()
 	 */
 	public function post( string $url, array $opt = [] ): string
 	{

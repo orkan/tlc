@@ -18,7 +18,7 @@ use Orkan\TLC\Factory;
  *
  * @author Orkan <orkans+tlc@gmail.com>
  */
-class Flaresolverr extends TransportAbstract
+class Flaresolverr extends Transport
 {
 	/**
 	 * List of active sessions.
@@ -52,7 +52,7 @@ class Flaresolverr extends TransportAbstract
 
 	/**
 	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::defaults()
+	 * @see \Orkan\TLC\Transport\Transport::defaults()
 	 */
 	protected function defaults(): array
 	{
@@ -82,10 +82,10 @@ class Flaresolverr extends TransportAbstract
 		 *
 		 * @formatter:off */
 		return [
-			'proxy_endpoint'    => 'http://localhost:8191/v1',
-			'proxy_sessions'    => true,
-			'proxy_session_ttl' => 0,
-			'proxy_timeout'     => 60,
+			'proxy_endpoint'    => getenv( 'PROXY_ENDPOINT' ) ?: 'http://localhost:8191/v1',
+			'proxy_sessions'    => getenv( 'PROXY_SESSIONS' ) ?: true,
+			'proxy_session_ttl' => getenv( 'PROXY_SESSION_TTL' ) ?: 60,
+			'proxy_timeout'     => getenv( 'PROXY_TIMEOUT' ) ?: 60,
 			'proxy_headers'     => [
 				'Content-Type: application/json',
 			],
@@ -122,7 +122,7 @@ class Flaresolverr extends TransportAbstract
 	 * @see Flaresolverr::getUrl()
 	 *
 	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::post()
+	 * @see \Orkan\TLC\Transport\Transport::post()
 	 */
 	public function post( string $url, array $opt = [] ): string
 	{
@@ -284,7 +284,7 @@ class Flaresolverr extends TransportAbstract
 	 * Loop back external urls then use cURL to comunicate with Flare.
 	 *
 	 * {@inheritDoc}
-	 * @see \Orkan\TLC\Transport\TransportAbstract::getUrl()
+	 * @see \Orkan\TLC\Transport\Transport::getUrl()
 	 */
 	public function getUrl( string $url, array $opt = [] ): string
 	{
