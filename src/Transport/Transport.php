@@ -147,7 +147,7 @@ abstract class Transport
 		], $opt );
 		/* @formatter:on */
 
-		DEBUG && $this->Logger->debug( $url );
+		$this->Logger->debug( $url );
 		DEBUG && $opt && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 
 		if ( $opt['cache']['refresh'] ) {
