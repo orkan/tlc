@@ -61,14 +61,13 @@ class Curl extends Transport
 		 * You can also set any custom header with CURLOPT_HTTPHEADER.
 		 *
 		 * [CURLOPT_HTTPHEADER]
-		 * Send additional headers
+		 * Request headers
 		 *
 		 * [CURLOPT_ENCODING]
 		 * The contents of the "Accept-Encoding: " header. This enables decoding of the response. Supported encodings
-		 * are "identity", "deflate", and "gzip". If an empty string, "", is set, a header containing all supported
-		 * encoding types is sent.
-		 * NOTE:
-		 * This won't change the CURLOPT_HTTPHEADER => "Accept-Encoding: ..." string sent to the server, however
+		 * are "identity", "deflate", and "gzip".
+		 * For an empty string, it will sent header containing all supported encodings.
+		 * Note, this won't change the CURLOPT_HTTPHEADER => "Accept-Encoding: ..." string sent to the server however
 		 * an empty string will force cURL to manage the response encoding!
 		 *
 		 * [CURLOPT_CONNECTTIMEOUT]

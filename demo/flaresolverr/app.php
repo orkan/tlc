@@ -5,10 +5,9 @@
  */
 
 /**
- * Demo: Flaresolverr
+ * Demo: Flaresolverr.
  * @author Orkan <orkans+tlc@gmail.com>
  */
-use Orkan\Logger;
 use Orkan\TLC\Application;
 use Orkan\TLC\Factory;
 
@@ -22,9 +21,7 @@ $Factory = new Factory([
 	'net_retry'         => 1,
 	'net_timeout'       => 2,
 	'net_throttle'      => 2e+6,
-	'net_throttle_max'  => 6e+6,
 	'json_throttle'     => 6e+5,
-	'json_throttle_max' => 1e+6,
 	// Utils/Logger
 	'log_file'          => __FILE__ . '.log',
 	'log_keep'          => 1,
