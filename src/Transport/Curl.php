@@ -211,6 +211,7 @@ class Curl extends Transport
 			unset( $curlopts[CURLOPT_HTTPHEADER] );
 		}
 
+		$this->Logger->debug( $curlopts[CURLOPT_URL] );
 		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 		DEBUG && $this->Logger->debug( 'Curl ' . $this->printOptions( $curlopts ) );
 
@@ -240,7 +241,7 @@ class Curl extends Transport
 			$error = sprintf( 'Error #%1$d %2$s: %3$s', $errno, $curle, $error );
 
 			// Try again?
-			if ( $retry && true === in_array( $errno, self::RETRY_ON, true ) ) {
+			if ( $retry && in_array( $errno, self::RETRY_ON, true ) ) {
 				$this->Logger->debug( $error );
 				$this->Logger->debug( 'Retries left: ' . $retry );
 				continue;

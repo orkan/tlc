@@ -16,7 +16,7 @@ class Cookies
 {
 	/* @formatter:off */
 
-	/**
+	/*
 	 * Default attributes.
 	 */
 	const DEFAULTS = [
@@ -31,11 +31,11 @@ class Cookies
 		'samesite' => 'Lax',
 	];
 
-	/**
+	/*
 	 * Map moz_cookies DB field to PHP setcookie().
 	 */
 	const MAP_MOZ_FIELD = [
-	//   DB column   =>  Cookie attribute
+	//	DB column    =>  Cookie attribute
 		'name'       => 'name',
 		'value'      => 'value',
 		'path'       => 'path',
@@ -46,7 +46,7 @@ class Cookies
 		'sameSite'   => 'samesite',
 	];
 
-	/**
+	/*
 	 * Map moz_cookies DB sameSite field to cookie attr.
 	 */
 	const MAP_MOZ_SAMESITE = [
@@ -57,9 +57,8 @@ class Cookies
 
 	/* @formatter:on */
 
-	/**
+	/*
 	 * Logged cookie files.
-	 *
 	 * This array help detects changes in cookie JAR file(s)
 	 */
 	protected $logCookieFiles = [];
@@ -265,12 +264,12 @@ class Cookies
 	/**
 	 * Parse all cookies from given url.
 	 */
-	public function getCookiesFromUrl( string $url, string $method = 'get', array $options = [] ): array
+	public function getCookiesFromUrl( string $url, string $method = 'get', array $opt = [] ): array
 	{
-		$options['curl'] = $options['curl'] ?? [];
-		$options['curl'][CURLOPT_HEADER] = true;
+		$opt['curl'] = $opt['curl'] ?? [];
+		$opt['curl'][CURLOPT_HEADER] = true;
 
-		$response = $this->Transport->with( $method, $url, $options );
+		$response = $this->Transport->with( $method, $url, $opt );
 		DEBUG && $this->Logger->debug( 'Response ' . $response );
 
 		$matches = $cookies = [];

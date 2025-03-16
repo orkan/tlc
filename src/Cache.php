@@ -60,10 +60,13 @@ class Cache
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
 
-		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
-		if ( is_string( $keep ) ) {
-			$Factory->cfg( 'cache_keep', strtotime( $keep ) - time() );
+		$cacheOrig = $Factory->get( 'cache_keep' );
+		$cacheKeep = is_string( $cacheOrig ) ? strtotime( $cacheOrig, 0 ) : $cacheOrig;
+		if ( !is_int( $cacheKeep ) ) {
+			throw new \InvalidArgumentException( "Invalid time cfg[cache_keep]: $cacheOrig" );
 		}
+		$Factory->cfg( 'cache_keep', $cacheKeep );
+		$Factory->cfg( 'cache_orig', $cacheOrig );
 	}
 
 	/**
@@ -132,22 +135,24 @@ class Cache
 			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $expired )->format( DATE_RSS ) );
 
 			// Clear expired cache
-			$wipe = [];
+			$files = [];
 			foreach ( glob( $this->dir . '/*' ) as $file ) {
 				if ( filemtime( $file ) < $expired ) {
 					$this->unlink( $file );
 				}
 				else {
-					$wipe[] = $file;
+					$files[] = $file;
 				}
 			}
 
 			// @todo test
-			$this->Logger->debug( 'Wipe more cache: ' . $this->Factory->get( 'cache_wipe' ) );
-			$this->Utils->arrayShuffle( $wipe );
-			$wipe = array_slice( $wipe, 0, $this->Factory->get( 'cache_wipe' ) );
-			foreach ( $wipe as $file ) {
-				$this->unlink( $file );
+			if ( $files && $wipe = $this->Factory->get( 'cache_wipe' ) ) {
+				$this->Logger->debug( "Wipe more cache: $wipe" );
+				$this->Utils->arrayShuffle( $files );
+				$files = array_slice( $files, 0, $wipe );
+				foreach ( $files as $file ) {
+					$this->unlink( $file );
+				}
 			}
 		}
 		// Create cache dir
@@ -178,7 +183,7 @@ class Cache
 		$data = file_get_contents( $cfile );
 		$data = gzdecode( $data );
 
-		DEBUG && $this->Logger->debug( $this->render( $cfile ) );
+		$this->Logger->debug( $this->render( $cfile ) );
 
 		return $data;
 	}
@@ -223,8 +228,8 @@ class Cache
 		rename( $old, $new );
 		touch( $new, time() );
 
-		DEBUG && $this->Logger->debug( $this->render( $old ) );
-		DEBUG && $this->Logger->debug( $this->render( $new ) );
+		$this->Logger->debug( $this->render( $old ) );
+		$this->Logger->debug( $this->render( $new ) );
 
 		return $new;
 	}
@@ -256,7 +261,7 @@ class Cache
 	 */
 	protected function unlink( string $cfile, int $backtrace = 0 ): bool
 	{
-		DEBUG && $this->Logger->debug( $this->render( $cfile ), $backtrace );
+		$this->Logger->debug( $this->render( $cfile ), $backtrace );
 		return @unlink( $cfile );
 	}
 }

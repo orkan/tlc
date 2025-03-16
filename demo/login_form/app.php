@@ -5,7 +5,7 @@
  */
 
 /**
- * Demo2: Log in with cookie
+ * Demo: Log in with cookie.
  *
  * Requirements:
  * symfony/css-selector
@@ -30,34 +30,66 @@ function getBody( $html )
 	$text = trim( preg_replace( '/(?:\s{2,}+|[\t ])/', ' ', $text ) );
 	return $text;
 }
+function writeln( $s ) {
+	echo $s . "\n";
+}
 
 /*
  * =====================================================================================================================
  * Setup
  */
-require dirname( __DIR__, 4 ) . '/autoload.php';
+require dirname( getcwd(), 4 ) . '/autoload.php';
 define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
+getenv( 'APP_TESTING' ) && define( 'TESTING', true );
 
-$Factory = new Factory( require __DIR__ . '/cfg.php' );
-$Application = new Application( $Factory );
-$Application->run();
+/* @formatter:off */
+$Factory = new Factory([
+	// Demo
+	'url_form' => 'http://localhost:8000/form.php',
+	'app_user' => [
+		'user' => 'User',
+		'pass' => 'Password',
+	],
+	// TLC
+	'net_retry'      => 1,
+	'net_timeout'    => 2,
+	'net_cookiefile' => __DIR__ . "/cookies.txt",
+	// Application
+	'app_opts'  => [
+		'reset' => [ 'short' => 'r', 'long' =>  'reset', 'desc' => 'Reset login form'  ],
+		'nonce' => [ 'short' => 'n', 'long' =>  'nonce', 'desc' => 'Use invalid nonce'  ],
+	],
+]);
+/* @formatter:on */
+$App = new Application( $Factory );
+$App->run();
+
+$Logger = $Factory->Logger();
+$Transport = $Factory->Transport();
 
 /*
  * =====================================================================================================================
  * Run
  */
-$Factory->Utils()->writeln( 'CMD:START', 1 );
-$Factory->Logger()->info( 'LOG:START' );
+$Logger->info( 'CMD: ' . implode( ' ', $GLOBALS['argv'] ) );
 
-printf( "--------- GET1: %s\n", $Factory->get( 'url_form' ) );
-$html = $Factory->Transport()->get( $Factory->get( 'url_form' ) );
+// Reset cookie before next run?
+if ( $App->getArg( 'reset' ) || $App->getArg( 'nonce' ) ) {
+	if ( is_file( $cookie = $Factory->get( 'net_cookiefile' ) ) ) {
+		$Logger->info( 'Signing out...' );
+		rename( $cookie, "{$cookie}.last" );
+	}
+}
+
+writeln( "--------- GET1: " . $Factory->get( 'url_form' ) );
+$html = $Transport->get( $Factory->get( 'url_form' ) );
 var_dump( getBody( $html ) );
 
 $Crawler = new Crawler( $html );
 $Node = $Crawler->filter( '#form-login' );
 
 if ( $Node->count() ) {
-	$Factory->Logger()->info( 'Loging in...' );
+	$Logger->info( 'Signing in...' );
 
 	// Create FORM object - action uri must be resolved to absolute url.
 	// Use cfg[url_form] for scheme & host when relative.
@@ -66,30 +98,24 @@ if ( $Node->count() ) {
 
 	// Merge current FORM fields with Login credentials from config file
 	$fields = array_merge( $Form->getValues(), $Factory->get( 'app_user' ) );
-	//$fields['nonce'] = 'invalid'; // Uncomment to raise errors with invalid nonce
 
-	printf( "--------- POST: %s\n", $Form->getUri() );
-	$post = $Factory->Transport()->post( $Form->getUri(), [ 'fields' => $fields ] );
-	var_dump( getBody( $post ) );
+	if ( $App->getArg( 'nonce' ) ) {
+		$Logger->info( '- with invalid nonce!' );
+		$fields['nonce'] = 'invalid';
+	}
 
-	printf( "--------- GET2: %s\n", $Factory->get( 'url_form' ) );
-	$html = $Factory->Transport()->get( $Factory->get( 'url_form' ) );
+	writeln( "--------- POST: " . $Form->getUri() );
+	$html = $Transport->post( $Form->getUri(), [ 'fields' => $fields ] );
+	$Crawler = new Crawler( $html );
+	$errors = $Crawler->filter( '#error' )->text( '' );
 	var_dump( getBody( $html ) );
 
-	$Crawler = new Crawler( $html );
-	$Node = $Crawler->filter( '#form-login' );
-	if ( $Node->count() ) {
-		echo "\n----------\n";
-		throw new Exception( "Loging in failed!" );
+	// POST errors?
+	if ( $errors ) {
+		throw new Exception( $errors );
 	}
-}
 
-$Factory->Utils()->writeln( 'CMD:END' );
-$Factory->Logger()->info( 'LOG:END' );
-
-if ( getenv( 'APP_CLEAN' ) ) {
-	// Remove cookie for next run
-	if ( is_file( $cookie = $Factory->get( 'net_cookiefile' ) ) ) {
-		rename( $cookie, "{$cookie}.last" );
-	}
+	writeln( "--------- GET2: " . $Factory->get( 'url_form' ) );
+	$html = $Transport->get( $Factory->get( 'url_form' ) );
+	var_dump( getBody( $html ) );
 }

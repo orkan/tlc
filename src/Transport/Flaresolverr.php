@@ -100,7 +100,7 @@ class Flaresolverr extends Transport
 	 */
 	public function get( string $url, array $opt = [] ): string
 	{
-		DEBUG && $this->Logger->debug( $url );
+		$this->Logger->debug( $url );
 		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 
 		/* @formatter:off */
@@ -126,7 +126,7 @@ class Flaresolverr extends Transport
 	 */
 	public function post( string $url, array $opt = [] ): string
 	{
-		DEBUG && $this->Logger->debug( $url );
+		$this->Logger->debug( $url );
 		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 
 		/* @formatter:off */
@@ -337,10 +337,10 @@ class Flaresolverr extends Transport
 	 */
 	public function close()
 	{
-		foreach ( array_keys( $this->sessions ) as $v ) {
-			$this->Logger->debug( 'Session destroy: ' . $v );
-			$this->call( [ 'cmd' => 'sessions.destroy', 'session' => $v ] );
-			unset( $this->sessions[$v] );
+		foreach ( array_keys( $this->sessions ) as $k ) {
+			$this->Logger->debug( 'Session destroy: ' . $k );
+			$this->call( [ 'cmd' => 'sessions.destroy', 'session' => $k ] );
+			unset( $this->sessions[$k] );
 		}
 	}
 }

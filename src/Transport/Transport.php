@@ -191,6 +191,9 @@ abstract class Transport
 		], $opt );
 		/* @formatter:on */
 
+		$this->Logger->debug( $url );
+		DEBUG && $opt && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
+
 		$data = $this->getUrl( $url, $opt );
 		$json = json_decode( $data, true );
 
@@ -235,13 +238,13 @@ abstract class Transport
 		/* @formatter:off */
 		$opt = array_merge([
 			'host'     => 'default',
-			'wait_min' => $this->Factory->get( 'net_throttle', 0 ),
-			'wait_max' => $this->Factory->get( 'net_throttle_max', 0 ),
+			'wait_min' => $this->Factory->get( 'net_throttle' ),
+			'wait_max' => $this->Factory->get( 'net_throttle_max' ),
 		], $opt );
 		/* @formatter:on */
 
-		$opt['wait_min'] = (int) min( $opt['wait_min'], $opt['wait_max'] );
-		$opt['wait_max'] = (int) max( $opt['wait_min'], $opt['wait_max'] );
+		$opt['wait_min'] = $opt['wait_min'] ? min( $opt['wait_min'], $opt['wait_max'] ) : 0;
+		$opt['wait_max'] = $opt['wait_min'] ? max( $opt['wait_min'], $opt['wait_max'] ) : 0;
 
 		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 
@@ -257,7 +260,7 @@ abstract class Transport
 		}
 
 		/* @formatter:off */
-		DEBUG && $this->Loggex->debug( 'Request #{total} | #{call}: {host}', [
+		$this->Loggex->debug( 'Request #{total} | #{call}: {host}', [
 			'{total}' => $this->Stats->calls,
 			'{call}'  => $this->hostCall[$opt['host']],
 			'{host}'  => $opt['host'],
@@ -287,7 +290,7 @@ abstract class Transport
 	{
 		$wait = max( 0, $usec );
 		$last = $this->Stats->sleep;
-		$this->Stats->sleep += $wait;
+		$this->Stats->sleep = $last + $wait;
 
 		/* @formatter:off */
 		DEBUG && $this->Loggex->debug( 'Sleep ({sec} sec) old:{old} + now:{now} = tot:{tot}', [
@@ -298,10 +301,10 @@ abstract class Transport
 		]);
 		/* @formatter:on */
 
+		$wait && $this->Loggex->debug( "usleep($wait)" );
+
 		$wait = defined( 'TESTING' ) ? 0 : $wait;
 		usleep( $wait );
-
-		DEBUG && $this->Loggex->debug( "usleep($wait) done!" );
 
 		return $wait;
 	}

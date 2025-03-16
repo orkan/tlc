@@ -39,8 +39,8 @@ $Factory = new Factory([
 ]);
 /* @formatter:on */
 
-$Application = new Application( $Factory );
-$Application->run();
+$App = new Application( $Factory );
+$App->run();
 $Flaresolverr = $Factory->Proxy();
 $Logger = $Factory->Logger();
 $Loggex = $Factory->Loggex();

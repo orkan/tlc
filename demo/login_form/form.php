@@ -20,7 +20,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 	{
 		case 'login':
 			if ( $nonce !== $_REQUEST['nonce'] ) {
-				$err[] = sprintf( 'Invalid nonce: "%s" (should be "%s")', $_REQUEST['nonce'], $nonce );
+				$err[] = sprintf( 'Invalid nonce: "%s". Expected: "%s"', $_REQUEST['nonce'], $nonce );
 			}
 			foreach ( [ 'user', 'pass' ] as $field ) {
 
@@ -50,7 +50,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 	file_put_contents( __FILE__ . '-post.txt', implode( "\n", info() ) );
 
 	if ( $err ) {
-		die( implode( ', ', $err ) );
+		die( sprintf( '<html><body><p id="error">%s</p></body></html>', implode( ', ', $err ) ) );
 	}
 
 	exit( header( 'Location: ' . $_SERVER['PHP_SELF'] ) );
@@ -71,7 +71,7 @@ if ( isset( $_COOKIE[$cookieName] ) ) {
 <title><?php echo basename( __DIR__ ) ?> - TLC Demo</title>
 </head>
 <body>
-<h1>TLC Demo: Loging in with cookie</h1>
+<h1>TLC Demo: Sign in with cookie</h1>
 <pre>
 <?php echo implode( "\n", info() ) ?>
 </pre>
@@ -82,11 +82,11 @@ if ( 'login' === $action ) {
 		'User: <input type="text" name="user">',
 		'Pass: <input type="text" name="pass">',
 		'<input type="hidden" name="nonce" value="' . $nonce . '" />',
-		'<button>Log In</button>',
+		'<button>Sign in</button>',
 	]);
 }
 else {
-	printf( 'Loged in as: <strong>%s</strong> (pass: %s)<br><button>Log Out</button>', $uname, $upass );
+	printf( 'Signed in as: <strong>%s</strong> (pass: %s)<br><button>Sign out</button>', $uname, $upass );
 }
 
 ?>
