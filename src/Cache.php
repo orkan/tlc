@@ -91,7 +91,7 @@ class Cache
 		return [
 			'cache_dir'  => getenv( 'CACHE_DIR' ) ?: dirname( __DIR__ ) . '/cache',
 			'cache_name' => null,
-			'cache_keep' => getenv( 'CACHE_KEEP' ) ?: '1 day',
+			'cache_keep' => getenv( 'CACHE_KEEP' ) ?: '1 year',
 			'cache_wipe' => 0,
 		];
 		/* @formatter:on */

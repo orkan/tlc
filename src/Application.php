@@ -13,8 +13,8 @@ namespace Orkan\TLC;
 class Application extends \Orkan\Application
 {
 	const APP_NAME = 'TLC';
-	const APP_VERSION = '2.3.0';
-	const APP_DATE = 'Sun, 16 Mar 2025 17:07:36 +01:00';
+	const APP_VERSION = '2.4.0';
+	const APP_DATE = 'Mon, 17 Mar 2025 17:23:23 +01:00';
 
 	/**
 	 * @link https://patorjk.com/software/taag/#p=display&v=0&f=Lean&t=TLC

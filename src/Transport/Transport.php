@@ -250,7 +250,6 @@ abstract class Transport
 
 		// Time passed from last call
 		$last = $this->lastCall[$opt['host']] ?? 0;
-		$this->lastCall[$opt['host']] = $this->Utils->exectime();
 		$pas = $min = $max = $rnd = $now = 0;
 		if ( $last ) {
 			$pas = ( $this->Utils->exectime() - $last ) / 1e+3; // nano to usec
@@ -267,7 +266,7 @@ abstract class Transport
 			'{host}'  => $opt['host'],
 		]);
 		DEBUG && $this->Loggex->debug(
-			'Sleep (min:{min} <-> max:{max}) pas:{pas} + rnd({rnd1}<->{rnd2}):{rnd} = now:{now}', [
+			'Sleep(min:{min} <-> max:{max}) | rnd({rnd1}<->{rnd2}):{rnd} - pas:{pas} = now:{now}', [
 			'{min}'   => sprintf( '%.1f', $opt['wait'] / 1e+6 ), // usec to sec
 			'{max}'   => sprintf( '%.1f', ( $opt['wait'] + $opt['rand'] ) / 1e+6 ),
 			'{rnd1}'  => $min / 1e+6,
@@ -280,6 +279,9 @@ abstract class Transport
 
 		// Sleep from 2nd call...
 		$last && $this->usleep( $now );
+
+		// Record current call time (after pause!)
+		$this->lastCall[$opt['host']] = $this->Utils->exectime();
 
 		return $rnd;
 	}
@@ -295,7 +297,7 @@ abstract class Transport
 		$this->Stats->sleep = $tot;
 
 		/* @formatter:off */
-		DEBUG && $this->Loggex->debug( 'Sleep ({sec} sec) old:{old} + now:{now} = tot:{tot}', [
+		DEBUG && $this->Loggex->debug( 'Sleep({sec} sec) | old:{old} + now:{now} = tot:{tot}', [
 			'{sec}' => sprintf( '%.6f', $usec / 1e+6 ), // usec to sec
 			'{old}' => sprintf( '%.3f', $old / 1e+6 ),
 			'{now}' => sprintf( '%.3f', $now / 1e+6 ),
