@@ -60,13 +60,8 @@ class Cache
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
 
-		$cacheOrig = $Factory->get( 'cache_keep' );
-		$cacheKeep = is_string( $cacheOrig ) ? strtotime( $cacheOrig, 0 ) : $cacheOrig;
-		if ( !is_int( $cacheKeep ) ) {
-			throw new \InvalidArgumentException( "Invalid time cfg[cache_keep]: $cacheOrig" );
-		}
-		$Factory->cfg( 'cache_keep', $cacheKeep );
-		$Factory->cfg( 'cache_orig', $cacheOrig );
+		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
+		$Factory->cfg( 'cache_keep', $this->Utils->dateDuration( $keep ) );
 	}
 
 	/**
@@ -131,13 +126,13 @@ class Cache
 		// Prepare cache dir
 		if ( is_dir( $this->dir ) ) {
 
-			$expired = time() - $this->Factory->get( 'cache_keep' );
-			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $expired )->format( DATE_RSS ) );
+			$keep = time() - $this->Factory->get( 'cache_keep' );
+			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $keep )->format( DATE_RSS ) );
 
 			// Clear expired cache
 			$files = [];
 			foreach ( glob( $this->dir . '/*' ) as $file ) {
-				if ( filemtime( $file ) < $expired ) {
+				if ( filemtime( $file ) < $keep ) {
 					$this->unlink( $file );
 				}
 				else {
