@@ -1,4 +1,22 @@
 ===================================================================================================
+v3.0.0
+
+Removed methods:
+---------------
+Cache::name() > protected!
+
+Replaced cfg:
+---------------
+Transport::cfg[net_throttle_max]  > use cfg[net_throttle_rnd]
+Transport::cfg[json_throttle_max] > use cfg[net_throttle_rnd]
+Transport::opt[wait_min]          > opt[wait]
+Transport::opt[wait_max]          > use opt[rand]
+
+Default cfg:
+---------------
+Cache::cfg[cache_keep]: '2 days' > '1 year'
+
+===================================================================================================
 v2.1.0
 
 Renamed cfg:

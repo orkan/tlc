@@ -257,9 +257,8 @@ class Flaresolverr extends Transport
 				CURLOPT_HTTPHEADER => $this->Factory->get( 'proxy_headers' ),
 			],
 			'throttle' => [
-				'host'     => $this->host( $url ?: $end ),
-				'wait_min' => $url ? $this->Factory->get( 'net_throttle' ) : 0,
-				'wait_max' => $url ? $this->Factory->get( 'net_throttle_max' ) : 0,
+				'host' => $this->host( $url ?: $end ),
+				'wait' => $url ? $this->Factory->get( 'net_throttle' ) : 0,
 			],
 			'cache' => [
 				'key'     => $url ?: $end . '?' . $api['cmd'],

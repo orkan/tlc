@@ -67,27 +67,30 @@ abstract class Transport
 	{
 		/**
 		 * [net_throttle]
-		 * 1 request per X microseconds
-		 * Use 0 to disable
+		 * [json_throttle]
+		 * One request per X microseconds (usec)
+		 * 0 to disable
 		 *
-		 * [net_throttle_max]
-		 * Randomize pause between net requests: cfg[net_throttle]...cfg[net_throttle_max]
-		 * Use value from cfg[net_throttle] to disable
+		 * [net_throttle_rnd]
+		 * Random interval to add to each request: 0...cfg[net_throttle_rnd] (usec)
+		 *
+		 * [net_headers]
+		 * [json_headers]
+		 * Request headers
 		 *
 		 * [net_useragent]
 		 * Useragent string
 		 *
 		 * @formatter:off */
 		return [
-			'json_throttle'     => 6e+5,
-			'json_throttle_max' => 1e+6,
-			'json_headers'      => [
+			'json_throttle'    => 5e+5, // 0.5 sec
+			'json_headers'     => [
 				'X-Requested-With: XMLHttpRequest',
 			],
-			'net_throttle'      => 2e+6,
-			'net_throttle_max'  => 6e+6,
-			'net_headers'       => [],
-			'net_useragent'     => null,
+			'net_throttle'     => 2e+6, // 2 sec
+			'net_throttle_rnd' => 3e+6, // 2 sec --> throttle(2...5)
+			'net_headers'      => [],
+			'net_useragent'    => null,
 		];
 		/* @formatter:on */
 	}
@@ -180,8 +183,7 @@ abstract class Transport
 		/* @formatter:off */
 		$opt = array_replace_recursive([
 			'throttle' => [
-				'wait_min' => $this->Factory->get( 'json_throttle', 0 ),
-				'wait_max' => $this->Factory->get( 'json_throttle_max', 0 ),
+				'wait' => $this->Factory->get( 'json_throttle', 0 ),
 			],
 			'curl'  => [
 				CURLOPT_HTTPHEADER => $this->Factory->get( 'json_headers' ),
@@ -220,43 +222,41 @@ abstract class Transport
 	}
 
 	/**
-	 * Throttle remote calls randomly: [wait_min] <-> [wait_max].
+	 * Throttle remote calls.
 	 *
 	 * Options:
-	 * [host]     => Group requests by host
-	 * [wait_min] => Throttle min time or throttle time if [max] is empty (usec)
-	 * [wait_max] => Throttle max time (usec)
+	 * [host] => Separate throttles by host
+	 * [wait] => Throttle min time (usec)
+	 * [rand] => Randomize throttle time: [wait]...[wait+rand] (usec)
 
 	 * @param array $opt Options
-	 * @return int  Sleep time (usec)
+	 * @return int  Computed random time (usec)
+	 *              Note: the sleep time is computed aftert decreasing this by already elapsed time!
 	 */
 	protected function throttle( array $opt = [] ): float
 	{
-		$this->Stats->calls++;
-		$this->Utils->arrayInc( $this->hostCall, $opt['host'] );
-
 		/* @formatter:off */
 		$opt = array_merge([
-			'host'     => 'default',
-			'wait_min' => $this->Factory->get( 'net_throttle' ),
-			'wait_max' => $this->Factory->get( 'net_throttle_max' ),
+			'host' => 'default',
+			'wait' => $this->Factory->get( 'net_throttle' ),
+			'rand' => $this->Factory->get( 'net_throttle_rnd' ),
 		], $opt );
 		/* @formatter:on */
 
-		$opt['wait_min'] = $opt['wait_min'] ? min( $opt['wait_min'], $opt['wait_max'] ) : 0;
-		$opt['wait_max'] = $opt['wait_min'] ? max( $opt['wait_min'], $opt['wait_max'] ) : 0;
+		$this->Stats->calls++;
+		$this->Utils->arrayInc( $this->hostCall, $opt['host'] );
 
 		DEBUG && $this->Logger->debug( 'Opt ' . $this->Utils->print_r( $opt ) );
 
 		// Time passed from last call
 		$last = $this->lastCall[$opt['host']] ?? 0;
-		$this->lastCall[$opt['host']] = $this->Utils->exectime();
-		$exec = $min = $max = $wait = 0;
+		$pas = $min = $max = $rnd = $now = 0;
 		if ( $last ) {
-			$exec = ( $this->Utils->exectime() - $last ) / 1e+3; // nano to usec
-			$min = max( 0, $opt['wait_min'] - $exec );
-			$max = max( 0, $opt['wait_max'] - $exec );
-			$wait = rand( $min, $max );
+			$pas = ( $this->Utils->exectime() - $last ) / 1e+3; // nano to usec
+			$min = max( 0, $opt['wait'] );
+			$max = $min ? $min + $opt['rand'] : 0;
+			$rnd = rand( $min, $max );
+			$now = $rnd - $pas;
 		}
 
 		/* @formatter:off */
@@ -266,47 +266,49 @@ abstract class Transport
 			'{host}'  => $opt['host'],
 		]);
 		DEBUG && $this->Loggex->debug(
-			'Sleep (min:{min} <-> max:{max}) pas:{pas} + rnd({rnd1}<->{rnd2}):{rnd} = tot:{tot}', [
-			'{min}'   => sprintf( '%.1f', $opt['wait_min'] / 1e+6 ), // usec to sec
-			'{max}'   => sprintf( '%.1f', $opt['wait_max'] / 1e+6 ),
-			'{pas}'   => sprintf( '%.3f', $exec / 1e+6 ),
+			'Sleep(min:{min} <-> max:{max}) | rnd({rnd1}<->{rnd2}):{rnd} - pas:{pas} = now:{now}', [
+			'{min}'   => sprintf( '%.1f', $opt['wait'] / 1e+6 ), // usec to sec
+			'{max}'   => sprintf( '%.1f', ( $opt['wait'] + $opt['rand'] ) / 1e+6 ),
 			'{rnd1}'  => $min / 1e+6,
 			'{rnd2}'  => $max / 1e+6,
-			'{rnd}'   => sprintf( '%.3f', $wait / 1e+6 ),
-			'{tot}'   => sprintf( '%.3f', ( $exec + $wait ) / 1e+6 ),
+			'{pas}'   => sprintf( '%.3f', $pas / 1e+6 ),
+			'{rnd}'   => sprintf( '%.3f', $rnd / 1e+6 ),
+			'{now}'   => sprintf( '%.3f', $now / 1e+6 ),
 		]);
 		/* @formatter:on */
 
 		// Sleep from 2nd call...
-		$last && $this->sleep( $wait );
+		$last && $this->usleep( $now );
 
-		return $wait;
+		// Record current call time (after pause!)
+		$this->lastCall[$opt['host']] = $this->Utils->exectime();
+
+		return $rnd;
 	}
 
 	/**
-	 * Slow down.
+	 * Sleep.
 	 */
-	protected function sleep( int $usec ): float
+	protected function usleep( int $usec ): float
 	{
-		$wait = max( 0, $usec );
-		$last = $this->Stats->sleep;
-		$this->Stats->sleep = $last + $wait;
+		$now = max( 0, $usec );
+		$old = $this->Stats->sleep;
+		$tot = $old + $now;
+		$this->Stats->sleep = $tot;
 
 		/* @formatter:off */
-		DEBUG && $this->Loggex->debug( 'Sleep ({sec} sec) old:{old} + now:{now} = tot:{tot}', [
+		DEBUG && $this->Loggex->debug( 'Sleep({sec} sec) | old:{old} + now:{now} = tot:{tot}', [
 			'{sec}' => sprintf( '%.6f', $usec / 1e+6 ), // usec to sec
-			'{old}' => sprintf( '%.3f', $last / 1e+6 ),
-			'{now}' => sprintf( '%.3f', $wait / 1e+6 ),
-			'{tot}' => sprintf( '%.3f', $this->Stats->sleep / 1e+6 ),
+			'{old}' => sprintf( '%.3f', $old / 1e+6 ),
+			'{now}' => sprintf( '%.3f', $now / 1e+6 ),
+			'{tot}' => sprintf( '%.3f', $tot / 1e+6 ),
 		]);
 		/* @formatter:on */
 
-		$wait && $this->Loggex->debug( "usleep($wait)" );
+		$this->Logger->debug( "usleep( $now )" );
+		$this->Utils->usleep( $now );
 
-		$wait = defined( 'TESTING' ) ? 0 : $wait;
-		usleep( $wait );
-
-		return $wait;
+		return $now;
 	}
 
 	/**

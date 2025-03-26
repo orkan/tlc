@@ -27,7 +27,7 @@ class Cache
 	 */
 	protected $prepared = false;
 
-	/**
+	/*
 	 * Cache dir for current instance.
 	 */
 	protected $dir;
@@ -57,16 +57,11 @@ class Cache
 		$this->Utils = $Factory->Utils();
 		$this->Logger = $Factory->Logger();
 
-		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone' ) ) ) );
+		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone', 'UTC' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
 
-		$cacheOrig = $Factory->get( 'cache_keep' );
-		$cacheKeep = is_string( $cacheOrig ) ? strtotime( $cacheOrig, 0 ) : $cacheOrig;
-		if ( !is_int( $cacheKeep ) ) {
-			throw new \InvalidArgumentException( "Invalid time cfg[cache_keep]: $cacheOrig" );
-		}
-		$Factory->cfg( 'cache_keep', $cacheKeep );
-		$Factory->cfg( 'cache_orig', $cacheOrig );
+		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
+		$Factory->cfg( 'cache_keep', $this->Utils->dateDuration( $keep ) );
 	}
 
 	/**
@@ -91,7 +86,7 @@ class Cache
 		return [
 			'cache_dir'  => getenv( 'CACHE_DIR' ) ?: dirname( __DIR__ ) . '/cache',
 			'cache_name' => null,
-			'cache_keep' => getenv( 'CACHE_KEEP' ) ?: '1 day',
+			'cache_keep' => getenv( 'CACHE_KEEP' ) ?: '1 year',
 			'cache_wipe' => 0,
 		];
 		/* @formatter:on */
@@ -131,13 +126,13 @@ class Cache
 		// Prepare cache dir
 		if ( is_dir( $this->dir ) ) {
 
-			$expired = time() - $this->Factory->get( 'cache_keep' );
-			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $expired )->format( DATE_RSS ) );
+			$keep = time() - $this->Factory->get( 'cache_keep' );
+			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $keep )->format( DATE_RSS ) );
 
 			// Clear expired cache
 			$files = [];
 			foreach ( glob( $this->dir . '/*' ) as $file ) {
-				if ( filemtime( $file ) < $expired ) {
+				if ( filemtime( $file ) < $keep ) {
 					$this->unlink( $file );
 				}
 				else {
@@ -167,8 +162,8 @@ class Cache
 	/**
 	 * Load gzipped data from file.
 	 *
-	 * @param string       $id File identifier. Can be enything.
-	 * @return string|null     File contents or false if no cache
+	 * @param  string      $id File identifier. Can be enything.
+	 * @return string|bool File contents or false if no cache
 	 */
 	public function get( string $id )
 	{
@@ -192,7 +187,7 @@ class Cache
 	 * Save data to gzipped file.
 	 *
 	 * @param  string   $id File identifier (can be enything)
-	 * @return int|bool     Number of bytes saved (gzipped!) or false on error
+	 * @return int|bool Number of bytes saved (gzipped!) or false on error
 	 */
 	public function put( string $id, string $data )
 	{
@@ -238,9 +233,9 @@ class Cache
 	 * Get full path fo cached file from string identifier.
 	 *
 	 * @param  string $id String identifier
-	 * @return string     Path to cached file
+	 * @return string Path to cached file
 	 */
-	public function name( string $id ): string
+	protected function name( string $id ): string
 	{
 		return sprintf( '%s/%s.gz', $this->dir, $this->Utils->strSlug( $id ) );
 	}
@@ -249,7 +244,7 @@ class Cache
 	 * Remove cached file by id.
 	 *
 	 * @param  string $id String identifier
-	 * @return bool       True if deleted, fale otherwise
+	 * @return bool   True if deleted, fale otherwise
 	 */
 	public function del( string $id ): bool
 	{

@@ -51,6 +51,7 @@ class Factory extends \Orkan\Factory
 	}
 
 	/**
+	 * Global net stats across all transport instances!
 	 * @return Transport\TransportStats
 	 */
 	public function TransportStats()
