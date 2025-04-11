@@ -78,7 +78,8 @@ class Cache
 	 * Eg. 24*3600, "1 day", etc...
 	 *
 	 * [cache_wipe]
-	 * Randomly purge preserved cache to increase timestamp deviation of remaining artefacts
+	 * Randomly purge valid cache to increase timestamp deviation in remaining artefacts.
+	 * This will prevent situation where the whole cache is expired at once, since it was created at the same time.
 	 */
 	protected function defaults(): array
 	{
@@ -140,7 +141,7 @@ class Cache
 				}
 			}
 
-			// @todo test
+			// Wipe more cache?
 			if ( $files && $wipe = $this->Factory->get( 'cache_wipe' ) ) {
 				$this->Logger->debug( "Wipe more cache: $wipe" );
 				$this->Utils->arrayShuffle( $files );

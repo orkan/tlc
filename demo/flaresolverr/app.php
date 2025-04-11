@@ -6,6 +6,7 @@
 
 /**
  * Demo: Flaresolverr.
+ *
  * @author Orkan <orkans+tlc@gmail.com>
  */
 use Orkan\TLC\Application;
@@ -13,7 +14,8 @@ use Orkan\TLC\Factory;
 
 // =====================================================================================================================
 // Setup
-require dirname( __DIR__, 4 ) . '/autoload.php';
+require dirname( getcwd(), 4 ) . '/autoload.php';
+define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
 
 /* @formatter:off */
 $Factory = new Factory([
@@ -41,6 +43,7 @@ $App->run();
 $Flaresolverr = $Factory->Proxy();
 $Logger = $Factory->Logger();
 $Loggex = $Factory->Loggex();
+$Utils = $Factory->Utils();
 
 // =====================================================================================================================
 // DEMO:
@@ -62,27 +65,8 @@ $urls = [
 foreach ( $urls as $url ) {
 	$Loggex->notice( [ '-', $url, '-' ] );
 	$text = $Flaresolverr->get( $url );
-	$text = fixText( $text, 1000 );
+	$text = $Utils->strFix( $text, 1000 );
 	$Logger->notice( $text );
 }
 
 $Logger->notice( 'DEMO: END' );
-
-// =====================================================================================================================
-// Functions:
-function fixText( $text, $len = 200 )
-{
-	/* @formatter:off */
-	$preg = [
-		'~[^[:print:]]~u' => ' ', // Non-printable chars
-		'~ ~'             => ' ', // Non-breaking space (U+C2A0)
-		'~[ ]{2,}~'       => ' ', // Double spaces
-	];
-	/* @formatter:on */
-
-	$text = preg_replace( array_keys( $preg ), $preg, $text );
-	$text = trim( $text );
-	$text = substr( $text, 0, $len );
-
-	return $text;
-}

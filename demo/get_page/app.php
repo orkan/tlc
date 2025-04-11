@@ -12,10 +12,8 @@
 use Orkan\TLC\Application;
 use Orkan\TLC\Factory;
 
-/*
- * =====================================================================================================================
- * Setup
- */
+// =====================================================================================================================
+// Setup
 require dirname( getcwd(), 4 ) . '/autoload.php';
 define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
 
@@ -37,10 +35,8 @@ $Utils = $Factory->Utils();
 $Loggex = $Factory->Loggex();
 $Transport = $Factory->Transport();
 
-/*
- * =====================================================================================================================
- * Run
- */
+// =====================================================================================================================
+// Run
 $url = $Factory->get( 'url_page' );
 $file = $Utils->strSlug( $url ) . '.html';
 $data = $Transport->getUrl( $url );
@@ -48,4 +44,4 @@ file_put_contents( $file, $data );
 $Loggex->info( 'Saved: "{url}" > "{file}"', [ '{url}' => $url, '{file}' => $file ] );
 
 $Utils->writeln( 'HTML contents:' );
-$Utils->writeln( strip_tags($data) );
+$Utils->writeln( strip_tags( $data ) );

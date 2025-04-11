@@ -19,25 +19,21 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\DomCrawler\UriResolver;
 
-/*
- * =====================================================================================================================
- * Functions
- */
+// =====================================================================================================================
+// Functions
 function getBody( $html )
 {
 	$Crawler = new Crawler( $html );
 	$text = $Crawler->filter( 'body' )->html();
-	$text = trim( preg_replace( '/(?:\s{2,}+|[\t ])/', ' ', $text ) );
+	$text = strip_tags( $text );
 	return $text;
 }
 function writeln( $s ) {
 	echo $s . "\n";
 }
 
-/*
- * =====================================================================================================================
- * Setup
- */
+// =====================================================================================================================
+// Setup
 require dirname( getcwd(), 4 ) . '/autoload.php';
 define( 'DEBUG', getenv( 'APP_DEBUG' ) ? true : false );
 getenv( 'APP_TESTING' ) && define( 'TESTING', true );
@@ -67,10 +63,8 @@ $App->run();
 $Logger = $Factory->Logger();
 $Transport = $Factory->Transport();
 
-/*
- * =====================================================================================================================
- * Run
- */
+// =====================================================================================================================
+// Run
 $Logger->info( 'CMD: ' . implode( ' ', $GLOBALS['argv'] ) );
 
 // Reset cookie before next run?
