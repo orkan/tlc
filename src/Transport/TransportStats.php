@@ -19,7 +19,7 @@ use Orkan\TLC\Factory;
  * @property array    $lastInfo Last request info.
  * @property string[] $sizes    Formated all bytes but [size], eg. Array ( "sent: 2kB" ).
  * @property string[] $times    Formated all times, eg. Array ( "PHP: 1s", "NET: 2s", "Sleep: 3s" ).
- * $summarystring   $summary  Formated string eg. "Recived 20MB in 4m21s".
+ * @property string   $summary  Formated string eg. "Recived 20MB in 4m21s".
  *
  * @author Orkan <orkans+tlc@gmail.com>
  */

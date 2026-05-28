@@ -59,9 +59,6 @@ class Cache
 
 		$this->Date = new \DateTime( 'now', ( new \DateTimeZone( $Factory->get( 'app_timezone', 'UTC' ) ) ) );
 		$this->dir = $Factory->get( 'cache_dir' ) . '/' . $Factory->get( 'cache_name', 'unknown' );
-
-		$Factory->cfg( 'cache_orig', $keep = $Factory->get( 'cache_keep' ) );
-		$Factory->cfg( 'cache_keep', $this->Utils->dateDuration( $keep ) );
 	}
 
 	/**
@@ -102,6 +99,30 @@ class Cache
 	}
 
 	/**
+	 * Get cache duration in seconds.
+	 */
+	public function duration(): int
+	{
+		return $this->Utils->dateDuration( $this->Factory->get( 'cache_keep' ) );
+	}
+
+	/**
+	 * Check if cache is disabled.
+	 */
+	public function isDisabled(): bool
+	{
+		return $this->duration() === self::DISABLED;
+	}
+
+	/**
+	 * Check if cache is permanent.
+	 */
+	public function isForever(): bool
+	{
+		return $this->duration() === self::FOREVER;
+	}
+
+	/**
 	 * Render file info.
 	 */
 	private function render( string $file )
@@ -116,18 +137,22 @@ class Cache
 	 */
 	private function prepare( bool $force = false ): bool
 	{
-		if ( in_array( $this->Factory->get( 'cache_keep' ), [ self::DISABLED, self::FOREVER ] ) ) {
+		if ( $this->isDisabled() ) {
 			return false;
+		}
+
+		if ( $this->isForever() ) {
+			return true;
 		}
 
 		if ( $this->prepared ) {
 			return true;
 		}
 
-		// Prepare cache dir
+		// Prepare cache dir if exists
 		if ( is_dir( $this->dir ) ) {
 
-			$keep = time() - $this->Factory->get( 'cache_keep' );
+			$keep = time() - $this->duration();
 			$this->Logger->debug( 'Clear cache before: ' . $this->Date->setTimestamp( $keep )->format( DATE_RSS ) );
 
 			// Clear expired cache
@@ -217,7 +242,7 @@ class Cache
 		$old = $this->name( $id );
 		$new = $this->name( $id . '-' . $sufix . time() );
 
-		if ( self::DISABLED === $this->Factory->get( 'cache_keep' ) || !is_file( $old ) ) {
+		if ( $this->isDisabled() || !is_file( $old ) ) {
 			return false;
 		}
 
