@@ -155,6 +155,7 @@ abstract class Transport
 
 		if ( $opt['cache']['refresh'] ) {
 			$this->Cache->del( $opt['cache']['key'] );
+			$this->Stats->cacheDel++;
 		}
 
 		$data = $this->Cache->get( $opt['cache']['key'] );
@@ -162,6 +163,10 @@ abstract class Transport
 		if ( false === $data ) {
 			$data = $this->with( $opt['transport']['method'], $url, $opt );
 			$this->Cache->put( $opt['cache']['key'], $data );
+			$this->Stats->cachePut++;
+		}
+		else {
+			$this->Stats->cacheGet++;
 		}
 
 		return $data;
@@ -202,6 +207,7 @@ abstract class Transport
 		if ( null === $json ) {
 			// Archive faulty response for later inspection
 			$this->Cache->archive( $opt['cache']['key'], 'err' );
+			$this->Stats->cacheArc++;
 
 			/* @formatter:off */
 			$json = [

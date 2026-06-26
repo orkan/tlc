@@ -10,17 +10,21 @@ use Orkan\TLC\Factory;
 /**
  * Statistics: Orkan\TLC\Transport.
  *
- * @property int      $calls    Total requests.
- * @property float    $time     Total request time (sec).
- * @property int      $sleep    Total sleep time (usec).
- * @property int      $sent     Total data sent (bytes).
- * @property int      $size     Total data recived (bytes).
- * @property string   $lastUrl  Last request URL.
- * @property array    $lastInfo Last request info.
- * @property string[] $sizes    Formated all bytes but [size], eg. Array ( "sent: 2kB" ).
- * @property string[] $times    Formated all times, eg. Array ( "PHP: 1s", "NET: 2s", "Sleep: 3s" ).
- * @property string   $summary  Formated string eg. "Recived 20MB in 4m21s".
- *
+ * @property int      $calls    Total requests
+ * @property float    $time     Total request time (sec)
+ * @property int      $sleep    Total sleep time (usec)
+ * @property int      $sent     Total data sent (bytes)
+ * @property int      $size     Total data recived (bytes)
+ * @property string[] $sizes    Formated all bytes but [size], eg. Array ( "sent: 2kB" )
+ * @property string[] $times    Formated all times, eg. Array ( "PHP: 1s", "NET: 2s", "Sleep: 3s" )
+ * @property string   $summary  Recived 1 MB (sent: 45 kB) in 37s (PHP: 6.14s, NET: 2s, Sleep: 49s, Requests: 99)
+ * @property string   $lastUrl  Last request URL
+ * @property array    $lastInfo Last request info
+ * @property int      $cachePut Total cache::put()
+ * @property int      $cacheGet Total cache::get()
+ * @property int      $cacheDel Total cache::del()
+ * @property int      $cacheArc Total cache::archive()
+*
  * @author Orkan <orkans+tlc@gmail.com>
  */
 class TransportStats extends \Orkan\Dataset
@@ -51,14 +55,19 @@ class TransportStats extends \Orkan\Dataset
 
 		/* @formatter:off */
 		parent::__construct([
-			'calls'   => 0,
-			'time'    => 0,
-			'sleep'   => 0,
-			'sent'    => 0,
-			'size'    => 0,
-			'sizes'   => [],
-			'times'   => [],
-			'summary' => '',
+			'calls'    => 0,
+			'time'     => 0,
+			'sleep'    => 0,
+			'sent'     => 0,
+			'size'     => 0,
+			'sizes'    => [],
+			'times'    => [],
+			'lastUrl'  => '',
+			'lastInfo' => [ 'http_code' => -1 ],
+			'cachePut' => 0,
+			'cacheGet' => 0,
+			'cacheDel' => 0,
+			'cacheArc' => 0,
 		]);
 		/* @formatter:on */
 

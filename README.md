@@ -1,4 +1,4 @@
-# TLC - Transport, Logging, Cache `v3.3.0`
+# TLC - Transport, Logging, Cache `v3.4.0`
 Simple PHP/cURL/FlareSolverr framework with Logger, Cache and more!
 
 ## Installation
@@ -47,4 +47,4 @@ PHP  ^7.4
 MIT
 
 ### Updated
-Thu, 28 May 2026 19:32:59 +02:00
+Fri, 26 Jun 2026 16:10:07 +02:00
