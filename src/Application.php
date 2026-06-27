@@ -13,8 +13,8 @@ namespace Orkan\TLC;
 class Application extends \Orkan\Application
 {
 	const APP_NAME = 'TLC';
-	const APP_VERSION = '3.4.0';
-	const APP_DATE = 'Fri, 26 Jun 2026 16:10:07 +02:00';
+	const APP_VERSION = '3.5.0';
+	const APP_DATE = 'Sat, 27 Jun 2026 15:11:06 +02:00';
 
 	/**
 	 * @link https://patorjk.com/software/taag/#p=display&v=0&f=Lean&t=TLC
@@ -39,7 +39,7 @@ _/      _/_/_/_/    _/_/_/';
 	/**
 	 * {@inheritdoc}
 	 */
-	protected function defaults()
+	protected function defaults(): array
 	{
 		/**
 		 * [app_php_ext]
